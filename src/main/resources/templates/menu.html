@@ -1,0 +1,24 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Menu</title>
+</head>
+<body>
+<h3>Menu</h3>
+
+<div>
+  <a th:href="@{/medico/list}">
+    <button type="button">Médicos</button>
+  </a><br/>
+
+  <a th:href="@{/paciente/list}">
+    <button type="button">Pacientes</button>
+  </a><br/>
+
+  <a th:href="@{/consulta/list}">
+    <button type="button">Consultas</button>
+  </a><br/>
+</div>
+</body>
+</html>
