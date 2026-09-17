@@ -13,6 +13,9 @@
   <tr>
     <th>Id</th>
     <th>Nome</th>
+    <th>CPF</th>
+    <th>Email</th>
+    <th>Telefone</th>
     <th>CRM</th>
     <th colspan="3">Ações</th>
   </tr>
@@ -20,6 +23,9 @@
   <tr th:each="m : ${medicos}">
     <td th:text="${m.id}"></td>
     <td th:text="${m.nome}"></td>
+    <td th:text="${m.cpf}"></td>
+    <td th:text="${m.email}"></td>
+    <td th:text="${m.telefone}"></td>
     <td th:text="${m.crm}"></td>
 
     <td> <a th:href="|/medico/edit/${m.id}|">Editar</a> </td>
