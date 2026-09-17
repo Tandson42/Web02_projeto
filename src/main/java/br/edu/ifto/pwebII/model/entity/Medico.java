@@ -15,6 +15,7 @@ import java.util.List;
  * usamos @OneToMany(mappedBy = "medico") aqui.
  */
 @Entity
+@PrimaryKeyJoinColumn(name = "id_pessoa_fisica")
 public class Medico extends PessoaFisica implements Serializable {
 
     private String crm;

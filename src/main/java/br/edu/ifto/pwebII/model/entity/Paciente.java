@@ -15,6 +15,7 @@ import java.util.List;
  * própria Consulta (que guarda a FK), por isso usamos @OneToMany(mappedBy).
  */
 @Entity
+@PrimaryKeyJoinColumn(name = "id_pessoa_fisica")
 public class Paciente extends PessoaFisica implements Serializable {
 
     // Lado fraco (não dono) do relacionamento 1 -> 0..*

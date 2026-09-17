@@ -1,9 +1,9 @@
 package br.edu.ifto.pwebII.model.entity;
 
-import jakarta.persistence.Entity;
 import jakarta.persistence.*;
 
 @Entity
+@PrimaryKeyJoinColumn(name = "id_pessoa")
 public class PessoaFisica extends Pessoa {
     private String nome;
     private String cpf;
