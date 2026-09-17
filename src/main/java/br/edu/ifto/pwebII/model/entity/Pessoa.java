@@ -4,7 +4,8 @@ import jakarta.persistence.*;
 import java.io.Serializable;
 
 @Entity
-public class Pessoa implements Serializable {
+@Inheritance(strategy = InheritanceType.JOINED)
+public abstract class Pessoa implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
