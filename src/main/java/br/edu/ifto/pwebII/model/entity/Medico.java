@@ -1,6 +1,8 @@
 package br.edu.ifto.pwebII.model.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -18,6 +20,8 @@ import java.util.List;
 @PrimaryKeyJoinColumn(name = "id_pessoa_fisica")
 public class Medico extends PessoaFisica implements Serializable {
 
+    @NotBlank(message = "Informe o CRM.")
+    @Pattern(regexp = "(CRM-)?[0-9]{4,6}", message = "O CRM deve conter de 4 a 6 dígitos, com o prefixo CRM- opcional.")
     private String crm;
 
     // Lado fraco (não dono) do relacionamento 0..* -> 1

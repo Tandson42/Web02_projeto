@@ -9,34 +9,57 @@
     <main th:fragment="main">
         <div class="container mt-4">
             <h3>Página FORM de Médico!</h3>
+            <!-- th:object liga o formulário ao médico; th:field vincula cada
+                 campo e th:errors/th:errorclass exibem as mensagens de validação -->
             <form th:action="${medico.id != null} ? @{/medico/update} : @{/medico/save}"
-                  method="post">
+                  th:object="${medico}" method="post">
+                <div class="alert alert-danger" th:if="${#fields.hasAnyErrors()}">
+                    <div th:each="erro : ${#fields.detailedErrors()}">
+                        <span th:text="${erro.message}"></span>
+                    </div>
+                </div>
+
                 <!-- sem o id, o JPA não sabe qual linha atualizar -->
-                <input type="hidden" name="id" th:value="${medico?.id}"/>
+                <input type="hidden" th:field="*{id}"/>
 
                 <div class="mb-3">
-                    <label class="form-label">Nome</label>
-                    <input type="text" class="form-control" name="nome" th:value="${medico?.nome}"/>
+                    <label class="form-label" for="nome">Nome</label>
+                    <input type="text" class="form-control" id="nome"
+                           th:field="*{nome}" th:errorclass="is-invalid"/>
+                    <div class="invalid-feedback" th:if="${#fields.hasErrors('nome')}"
+                         th:errors="*{nome}"></div>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">CPF</label>
-                    <input type="text" class="form-control" name="cpf" th:value="${medico?.cpf}"/>
+                    <label class="form-label" for="cpf">CPF</label>
+                    <input type="text" class="form-control" id="cpf"
+                           th:field="*{cpf}" th:errorclass="is-invalid"/>
+                    <div class="invalid-feedback" th:if="${#fields.hasErrors('cpf')}"
+                         th:errors="*{cpf}"></div>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Email</label>
-                    <input type="email" class="form-control" name="email" th:value="${medico?.email}"/>
+                    <label class="form-label" for="email">Email</label>
+                    <input type="email" class="form-control" id="email"
+                           th:field="*{email}" th:errorclass="is-invalid"/>
+                    <div class="invalid-feedback" th:if="${#fields.hasErrors('email')}"
+                         th:errors="*{email}"></div>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">Telefone</label>
-                    <input type="text" class="form-control" name="telefone" th:value="${medico?.telefone}"/>
+                    <label class="form-label" for="telefone">Telefone</label>
+                    <input type="text" class="form-control" id="telefone"
+                           th:field="*{telefone}" th:errorclass="is-invalid"/>
+                    <div class="invalid-feedback" th:if="${#fields.hasErrors('telefone')}"
+                         th:errors="*{telefone}"></div>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label">CRM</label>
-                    <input type="text" class="form-control" name="crm" th:value="${medico?.crm}"/>
+                    <label class="form-label" for="crm">CRM</label>
+                    <input type="text" class="form-control" id="crm"
+                           th:field="*{crm}" th:errorclass="is-invalid"/>
+                    <div class="invalid-feedback" th:if="${#fields.hasErrors('crm')}"
+                         th:errors="*{crm}"></div>
                 </div>
 
                 <button type="submit" class="btn btn-info text-white">Salvar</button>

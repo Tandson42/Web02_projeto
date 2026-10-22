@@ -4,14 +4,21 @@ import br.edu.ifto.pwebII.model.entity.Consulta;
 import br.edu.ifto.pwebII.model.jdbc.repository.ConsultaRepository;
 import br.edu.ifto.pwebII.model.jdbc.repository.MedicoRepository;
 import br.edu.ifto.pwebII.model.jdbc.repository.PacienteRepository;
+import br.edu.ifto.pwebII.validation.Edicao;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
+import jakarta.validation.groups.Default;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 /**
  * Controller MVC para a entidade Consulta.
@@ -37,7 +44,7 @@ public class ConsultaController {
 
     //carrega a página form.html da consulta (cadastro novo)
     @GetMapping("form")
-    public ModelAndView form(Consulta consulta, ModelMap model) {
+    public ModelAndView form(@ModelAttribute("consulta") Consulta consulta, ModelMap model) {
         model.addAttribute("pacientes", pacienteRepository.pacientes());
         model.addAttribute("medicos", medicoRepository.medicos());
         return new ModelAndView("consulta/form", model);
@@ -53,8 +60,17 @@ public class ConsultaController {
     //cadastra uma nova consulta
     @Transactional
     @PostMapping("save")
-    public ModelAndView save(Consulta consulta) {
+    public ModelAndView save(@Valid @ModelAttribute("consulta") Consulta consulta,
+                             BindingResult result,
+                             RedirectAttributes attributes,
+                             ModelMap model) {
+        if (result.hasErrors()) {
+            populaSelects(model);
+            return new ModelAndView("consulta/form", model);
+        }
+
         repository.save(consulta);
+        attributes.addFlashAttribute("mensagem", "Consulta cadastrada com sucesso.");
         return new ModelAndView("redirect:/consulta/list");
     }
 
@@ -62,17 +78,31 @@ public class ConsultaController {
     @GetMapping("/edit/{id}")
     public ModelAndView edit(@PathVariable("id") Long id, ModelMap model) {
         model.addAttribute("consulta", repository.consulta(id));
-        model.addAttribute("pacientes", pacienteRepository.pacientes());
-        model.addAttribute("medicos", medicoRepository.medicos());
+        populaSelects(model);
         return new ModelAndView("/consulta/form", model);
     }
 
-    //atualiza uma consulta existente
+    //atualiza uma consulta existente (a edição exige o identificador)
     @Transactional
     @PostMapping("update")
-    public ModelAndView update(Consulta consulta) {
+    public ModelAndView update(@Validated({Default.class, Edicao.class}) @ModelAttribute("consulta") Consulta consulta,
+                               BindingResult result,
+                               RedirectAttributes attributes,
+                               ModelMap model) {
+        if (result.hasErrors()) {
+            populaSelects(model);
+            return new ModelAndView("consulta/form", model);
+        }
+
         repository.update(consulta);
+        attributes.addFlashAttribute("mensagem", "Consulta atualizada com sucesso.");
         return new ModelAndView("redirect:/consulta/list");
+    }
+
+    //alimenta os <select> de paciente e médico (inclusive quando há erros)
+    private void populaSelects(ModelMap model) {
+        model.addAttribute("pacientes", pacienteRepository.pacientes());
+        model.addAttribute("medicos", medicoRepository.medicos());
     }
 
     //exclui uma consulta

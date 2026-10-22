@@ -8,6 +8,9 @@
 
     <main th:fragment="main">
         <div class="container mt-4">
+            <!-- Mensagem flash enviada após cadastro/edição bem-sucedidos -->
+            <div class="alert alert-success" th:if="${mensagem != null}" th:text="${mensagem}"></div>
+
             <!-- Link para abrir o formulário de cadastro de uma nova consulta -->
             <a th:href="@{/consulta/form}" class="btn btn-info text-white mb-3">Nova Consulta</a>
 

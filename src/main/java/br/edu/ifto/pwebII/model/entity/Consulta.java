@@ -2,6 +2,10 @@ package br.edu.ifto.pwebII.model.entity;
 
 import jakarta.persistence.*;
 
+import br.edu.ifto.pwebII.validation.Edicao;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.Size;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 
@@ -23,17 +27,26 @@ public class Consulta implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @NotNull(groups = Edicao.class, message = "O identificador deve ser informado para edição.")
     private Long id;
 
+    @NotNull(message = "Informe a data e hora da consulta.")
     private LocalDateTime data;
-    private double valor;
+
+    @NotNull(message = "Informe o valor da consulta.")
+    @PositiveOrZero(message = "O valor da consulta deve ser maior ou igual a zero.")
+    private Double valor;
+
+    @Size(max = 500, message = "A observação deve ter no máximo {max} caracteres.")
     private String observacao;
 
     // Lado dono do relacionamento 0..* -> 1 (Paciente).
     // A FK "paciente_id" é persistida na tabela Consulta.
     // @OnDelete(CASCADE) gera a constraint com ON DELETE CASCADE no banco,
     // garantindo a exclusão em cascata mesmo fora do contexto JPA.
-    @ManyToOne
+    // optional = false gera a coluna NOT NULL, impedindo consulta sem paciente.
+    @NotNull(message = "Informe o paciente.")
+    @ManyToOne(optional = false)
     @JoinColumn(name = "paciente_id")
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Paciente paciente;
@@ -41,7 +54,9 @@ public class Consulta implements Serializable {
     // Lado dono do relacionamento 0..* -> 1 (Medico).
     // A FK "medico_id" é persistida na tabela Consulta.
     // @OnDelete(CASCADE) gera a constraint com ON DELETE CASCADE no banco.
-    @ManyToOne
+    // optional = false gera a coluna NOT NULL, impedindo consulta sem médico.
+    @NotNull(message = "Informe o médico.")
+    @ManyToOne(optional = false)
     @JoinColumn(name = "medico_id")
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Medico medico;
@@ -72,11 +87,11 @@ public class Consulta implements Serializable {
         this.data = data;
     }
 
-    public double getValor() {
+    public Double getValor() {
         return valor;
     }
 
-    public void setValor(double valor) {
+    public void setValor(Double valor) {
         this.valor = valor;
     }
 
