@@ -1,5 +1,6 @@
 ﻿<!DOCTYPE html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
       th:replace="~{fragments/layout :: layout(~{::head}, ~{::main})}">
 
     <head th:replace="~{fragments/head :: head(~{::title})}">
@@ -11,7 +12,7 @@
             <h3>Menu</h3>
 
             <div class="row g-3 mt-1">
-                <div class="col-md-4">
+                <div class="col-md-4" sec:authorize="hasRole('ADMIN')">
                     <div class="card">
                         <div class="card-body">
                             <h5 class="card-title">Médicos</h5>
