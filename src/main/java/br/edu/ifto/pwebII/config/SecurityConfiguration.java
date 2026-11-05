@@ -31,7 +31,6 @@ public class SecurityConfiguration {
                 .defaultSuccessUrl("/", true)
                 .permitAll() // a página de login é acessível sem autenticação
             )
-            .httpBasic(withDefaults()) // autenticação básica (usuário e senha no cabeçalho HTTP)
             .logout(logout -> logout
                 .logoutSuccessUrl("/login?logout")
                 .permitAll()
