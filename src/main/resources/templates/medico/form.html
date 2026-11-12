@@ -62,6 +62,31 @@
                          th:errors="*{crm}"></div>
                 </div>
 
+                <h5 class="mt-4">Acesso ao sistema</h5>
+                <hr/>
+
+                <div class="mb-3">
+                    <label class="form-label" for="login">Usuário</label>
+                    <input type="text" class="form-control" id="login"
+                           th:field="*{login}" th:errorclass="is-invalid"
+                           autocomplete="username" placeholder="ex.: carlos.lima"/>
+                    <div class="invalid-feedback" th:if="${#fields.hasErrors('login')}"
+                         th:errors="*{login}"></div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="senha"
+                           th:text="${medico.id != null} ? 'Nova senha (deixe em branco para manter)' : 'Senha'">Senha</label>
+                    <input type="password" class="form-control" id="senha" name="senha"
+                           autocomplete="new-password"
+                           th:classappend="${#fields.hasErrors('senha')} ? 'is-invalid'"/>
+                    <div class="invalid-feedback" th:if="${#fields.hasErrors('senha')}"
+                         th:errors="*{senha}"></div>
+                    <div class="form-text" th:if="${medico.id == null}">
+                        A senha deve ter no mínimo 6 caracteres.
+                    </div>
+                </div>
+
                 <button type="submit" class="btn btn-info text-white">Salvar</button>
             </form>
             <a th:href="@{/medico/list}" class="btn btn-outline-secondary mt-2">Voltar para a lista</a>

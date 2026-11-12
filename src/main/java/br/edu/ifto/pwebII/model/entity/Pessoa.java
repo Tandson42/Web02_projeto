@@ -37,9 +37,11 @@ public abstract class Pessoa implements Serializable {
 
     // Campos usados somente pelos formulários de cadastro/edição.
     @Transient
-    @NotBlank(message = "Informe o nome de usuário para acesso ao sistema.")
-    @Size(min = 3, max = 50, message = "O nome de usuário deve ter entre {min} e {max} caracteres.")
-    @Pattern(regexp = "[A-Za-z0-9._-]+", message = "O nome de usuário deve conter apenas letras, números, ponto, hífen ou sublinhado.")
+    @NotBlank(groups = Cadastro.class, message = "Informe o nome de usuário para acesso ao sistema.")
+    @Size(min = 3, max = 50, groups = Cadastro.class,
+            message = "O nome de usuário deve ter entre {min} e {max} caracteres.")
+    @Pattern(regexp = "[A-Za-z0-9._-]+", groups = Cadastro.class,
+            message = "O nome de usuário deve conter apenas letras, números, ponto, hífen ou sublinhado.")
     private String login;
 
     @Transient

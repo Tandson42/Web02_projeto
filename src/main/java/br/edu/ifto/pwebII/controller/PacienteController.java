@@ -2,9 +2,10 @@ package br.edu.ifto.pwebII.controller;
 
 import br.edu.ifto.pwebII.model.entity.Paciente;
 import br.edu.ifto.pwebII.model.jdbc.repository.PacienteRepository;
+import br.edu.ifto.pwebII.service.UsuarioService;
+import br.edu.ifto.pwebII.validation.Cadastro;
 import br.edu.ifto.pwebII.validation.Edicao;
 import jakarta.transaction.Transactional;
-import jakarta.validation.Valid;
 import jakarta.validation.groups.Default;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -23,9 +24,11 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class PacienteController {
 
     private final PacienteRepository repository;
+    private final UsuarioService usuarioService;
 
-    public PacienteController(PacienteRepository repository) {
+    public PacienteController(PacienteRepository repository, UsuarioService usuarioService) {
         this.repository = repository;
+        this.usuarioService = usuarioService;
     }
 
     //carrega a página form.html do paciente (cadastro novo)
@@ -44,9 +47,10 @@ public class PacienteController {
     //cadastra um novo paciente
     @Transactional
     @PostMapping("save")
-    public ModelAndView save(@Valid @ModelAttribute("paciente") Paciente paciente,
+    public ModelAndView save(@Validated({Default.class, Cadastro.class}) @ModelAttribute("paciente") Paciente paciente,
                              BindingResult result,
                              RedirectAttributes attributes) {
+        usuarioService.criarCredenciais(paciente, result);
         if (result.hasErrors()) {
             return new ModelAndView("paciente/form");
         }
@@ -69,6 +73,17 @@ public class PacienteController {
     public ModelAndView update(@Validated({Default.class, Edicao.class}) @ModelAttribute("paciente") Paciente paciente,
                                BindingResult result,
                                RedirectAttributes attributes) {
+        if (result.hasErrors()) {
+            return new ModelAndView("paciente/form");
+        }
+
+        Paciente existente = repository.paciente(paciente.getId());
+        if (existente == null) {
+            result.reject("paciente.naoEncontrado", "Paciente não encontrado.");
+            return new ModelAndView("paciente/form");
+        }
+
+        usuarioService.atualizarCredenciais(paciente, existente, result);
         if (result.hasErrors()) {
             return new ModelAndView("paciente/form");
         }
