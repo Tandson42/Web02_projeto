@@ -22,14 +22,14 @@ public class SecurityConfiguration {
                 .requestMatchers("/login", "/error").permitAll()
                 // área do paciente: somente as próprias consultas
                 .requestMatchers("/minhas-consultas").hasRole("PACIENTE")
-                // área do médico: somente os próprios pacientes e consultas
-                .requestMatchers("/meus-pacientes", "/minhas-consultas-medico").hasRole("MEDICO")
-                .requestMatchers("/paciente/consultas/**").hasAnyRole("SECRETARIO", "ADMIN", "MEDICO")
+                // área do médico: somente as próprias consultas
+                .requestMatchers("/minhas-consultas-medico").hasRole("MEDICO")
                 // secretário e admin: acesso completo às funcionalidades administrativas e de cadastro
                 .requestMatchers("/medico/**").hasAnyRole("SECRETARIO", "ADMIN")
                 .requestMatchers("/paciente/**").hasAnyRole("SECRETARIO", "ADMIN")
                 .requestMatchers("/consulta/**").hasAnyRole("SECRETARIO", "ADMIN")
                 .requestMatchers("/usuario/**").hasAnyRole("SECRETARIO", "ADMIN")
+                .requestMatchers("/meus-pacientes").hasAnyRole("SECRETARIO", "ADMIN")
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form

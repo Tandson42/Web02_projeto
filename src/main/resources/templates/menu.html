@@ -83,17 +83,6 @@
                 <div class="col-md-6 col-lg-4" sec:authorize="hasRole('MEDICO')">
                     <div class="card h-100 p-2">
                         <div class="card-body d-flex flex-column">
-                            <div class="icon-box"><i class="bi bi-person-lines-fill"></i></div>
-                            <h5 class="card-title">Meus Pacientes</h5>
-                            <p class="card-text mb-4">Visualização dos pacientes atendidos</p>
-                            <a th:href="@{/meus-pacientes}" class="btn btn-info mt-auto">Acessar <i class="bi bi-arrow-right"></i></a>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-6 col-lg-4" sec:authorize="hasRole('MEDICO')">
-                    <div class="card h-100 p-2">
-                        <div class="card-body d-flex flex-column">
                             <div class="icon-box"><i class="bi bi-journal-medical"></i></div>
                             <h5 class="card-title">Minhas Consultas</h5>
                             <p class="card-text mb-4">Listagem de consultas realizadas por você</p>

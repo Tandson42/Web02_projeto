@@ -22,8 +22,8 @@ inicialização. Os dados iniciais estão em `src/main/resources/import.sql`.
 | `secretario` | `123` | SECRETARIO | — | Vê tudo (médicos, pacientes, consultas, usuários) |
 | `user` | `123` | PACIENTE | Maria Silva | Vê apenas suas próprias consultas (`/minhas-consultas`) |
 | `joao` | `123` | PACIENTE | João Souza | Vê apenas suas próprias consultas (`/minhas-consultas`) |
-| `carlos` | `123` | MEDICO | Dr. Carlos Lima | Vê seus pacientes (`/meus-pacientes`) e suas consultas (`/minhas-consultas-medico`) |
-| `ana` | `123` | MEDICO | Dra. Ana Costa | Vê seus pacientes (`/meus-pacientes`) e suas consultas (`/minhas-consultas-medico`) |
+| `carlos` | `123` | MEDICO | Dr. Carlos Lima | Vê apenas suas consultas (`/minhas-consultas-medico`) |
+| `ana` | `123` | MEDICO | Dra. Ana Costa | Vê apenas suas consultas (`/minhas-consultas-medico`) |
 | `clinica` | `123` | SECRETARIO | Clínica Saúde LTDA | Acesso de secretário |
 
 As senhas são gravadas no banco com hash BCrypt.
@@ -33,11 +33,13 @@ As senhas são gravadas no banco com hash BCrypt.
 | Rota | Anônimo | PACIENTE | MEDICO | SECRETARIO / ADMIN |
 |---|---|---|---|---|
 | `/login`, arquivos estáticos | Liberado | Liberado | Liberado | Liberado |
-| `/` (Menu) | Redireciona para login | Sim (vê card de suas consultas) | Sim (vê cards de seus pacientes e consultas) | Sim (vê todos os cards) |
+| `/` (Menu) | Redireciona para login | Sim (vê card de suas consultas) | Sim (vê card de suas consultas) | Sim (vê todos os cards) |
 | `/minhas-consultas` | Redireciona para login | Sim | 403 | Sim |
-| `/meus-pacientes`, `/minhas-consultas-medico` | Redireciona para login | 403 | Sim | Sim |
-| `/paciente/consultas/**` | Redireciona para login | 403 | Sim | Sim |
-| `/paciente/**` (list, save, edit, remove) | Redireciona para login | 403 | 403 | Sim |
+| `/minhas-consultas-medico` | Redireciona para login | 403 | Sim | Sim |
+| `/paciente/**` (list, save, edit, remove, consultas) | Redireciona para login | 403 | 403 | Sim |
+| `/medico/**` | Redireciona para login | 403 | 403 | Sim |
+| `/consulta/**` | Redireciona para login | 403 | 403 | Sim |
+| `/usuario/**` | Redireciona para login | 403 | 403 | Sim |
 | `/medico/**` | Redireciona para login | 403 | 403 | Sim |
 | `/consulta/**` | Redireciona para login | 403 | 403 | Sim |
 | `/usuario/**` | Redireciona para login | 403 | 403 | Sim |

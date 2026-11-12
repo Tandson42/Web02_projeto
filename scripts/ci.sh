@@ -171,19 +171,21 @@ assert_eq "login carlos/123 autentica e volta para /" \
     "302 $BASE/" "$(login "$J_MEDICO" carlos 123)"
 
 home_medico="$(curl -s --max-time 10 -b "$J_MEDICO" "$BASE/")"
-contains "home do médico exibe link para Meus Pacientes" \
+not_contains "médico não vê Meus Pacientes na home" \
     "$home_medico" "/meus-pacientes"
 contains "home do médico exibe link para Minhas Consultas" \
     "$home_medico" "/minhas-consultas-medico"
 not_contains "médico não vê Médicos na home" \
     "$home_medico" "Cadastro e listagem de médicos"
+not_contains "médico não vê Pacientes na home" \
+    "$home_medico" "Cadastro e listagem de pacientes"
 not_contains "médico não vê Usuários na home" \
     "$home_medico" "Gerenciamento de contas e permissões de acesso"
 
-assert_eq "médico acessa /meus-pacientes (200)" "200" \
-    "$(curl -s --max-time 10 -o /dev/null -w '%{http_code}' -b "$J_MEDICO" "$BASE/meus-pacientes")"
 assert_eq "médico acessa /minhas-consultas-medico (200)" "200" \
     "$(curl -s --max-time 10 -o /dev/null -w '%{http_code}' -b "$J_MEDICO" "$BASE/minhas-consultas-medico")"
+assert_eq "médico não acessa /meus-pacientes (403)" "403" \
+    "$(curl -s --max-time 10 -o /dev/null -w '%{http_code}' -b "$J_MEDICO" "$BASE/meus-pacientes")"
 assert_eq "médico não acessa /medico/list (403)" "403" \
     "$(curl -s --max-time 10 -o /dev/null -w '%{http_code}' -b "$J_MEDICO" "$BASE/medico/list")"
 assert_eq "médico não acessa /paciente/list (403)" "403" \

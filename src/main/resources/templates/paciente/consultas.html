@@ -55,10 +55,7 @@
                 <a sec:authorize="hasAnyRole('SECRETARIO', 'ADMIN')" th:href="@{/paciente/list}" class="btn btn-outline-secondary">
                     <i class="bi bi-arrow-left"></i> Voltar para a lista de pacientes
                 </a>
-                <a sec:authorize="hasRole('MEDICO')" th:href="@{/meus-pacientes}" class="btn btn-outline-secondary">
-                    <i class="bi bi-arrow-left"></i> Voltar para Meus Pacientes
-                </a>
-                <a sec:authorize="hasRole('PACIENTE')" th:href="@{/}" class="btn btn-outline-secondary">
+                <a sec:authorize="!hasAnyRole('SECRETARIO', 'ADMIN')" th:href="@{/}" class="btn btn-outline-secondary">
                     <i class="bi bi-arrow-left"></i> Voltar ao Menu
                 </a>
             </div>

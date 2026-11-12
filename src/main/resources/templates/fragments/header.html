@@ -29,9 +29,6 @@
                     </li>
                     <!-- Médico -->
                     <li class="nav-item" sec:authorize="hasRole('MEDICO')">
-                        <a class="nav-link" th:href="@{/meus-pacientes}">Meus Pacientes</a>
-                    </li>
-                    <li class="nav-item" sec:authorize="hasRole('MEDICO')">
                         <a class="nav-link" th:href="@{/minhas-consultas-medico}">Minhas Consultas</a>
                     </li>
                     <!-- Paciente -->
