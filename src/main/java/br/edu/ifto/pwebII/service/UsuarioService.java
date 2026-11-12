@@ -15,8 +15,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Centraliza a criação e a atualização das credenciais de acesso
- * vinculadas a uma Pessoa.
+ * Centraliza a criação e a atualização das credenciais de acesso,
+ * tanto no cadastro de pessoas quanto na área administrativa de usuários.
  */
 @Service
 public class UsuarioService {
@@ -48,6 +48,7 @@ public class UsuarioService {
             result.rejectValue("senha", "senha.obrigatoria", "Informe a senha de acesso.");
             return;
         }
+        validarSenhaOpcional(pessoa.getSenha(), result);
 
         validarLoginUnico(pessoa.getLogin(), null, result);
         if (result.hasErrors()) {
@@ -78,6 +79,8 @@ public class UsuarioService {
             if (formulario.getSenha() == null || formulario.getSenha().isBlank()) {
                 result.rejectValue("senha", "senha.obrigatoria",
                         "Informe a senha para criar a conta de acesso desta pessoa.");
+            } else {
+                validarSenhaOpcional(formulario.getSenha(), result);
             }
             if (result.hasErrors()) {
                 return;
@@ -98,6 +101,7 @@ public class UsuarioService {
         }
 
         validarLoginUnico(formulario.getLogin(), usuario.getId(), result);
+        validarSenhaOpcional(formulario.getSenha(), result);
         if (result.hasErrors()) {
             return;
         }

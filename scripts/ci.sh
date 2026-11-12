@@ -63,10 +63,13 @@ req() { # jar [curl args...]
     local jar="$1"; shift
     curl -s --max-time 10 -o /dev/null -w '%{http_code} %{redirect_url}' -b "$jar" -c "$jar" "$@"
 }
-csrf_token() { # jar -> token do formulário da página
-    curl -s --max-time 10 -b "$1" -c "$1" "$BASE/login" \
+csrf_page() { # jar caminho -> token CSRF presente na página
+    curl -s --max-time 10 -b "$1" -c "$1" "$BASE$2" \
         | grep -oE 'name="_csrf" value="[^"]*"' | head -1 \
         | sed 's/.*value="//;s/"$//'
+}
+csrf_token() { # jar -> token do formulário de login
+    csrf_page "$1" /login
 }
 login() { # jar usuário senha
     local jar="$1" user="$2" pass="$3" token
@@ -112,6 +115,7 @@ echo
 J_USER="$TMP/user.txt"
 J_ERR="$TMP/err.txt"
 J_ADMIN="$TMP/admin.txt"
+J_NEW="$TMP/new.txt"
 
 # ---- anônimo ----
 assert_eq "anônimo em / é redirecionado para /login" \
@@ -140,6 +144,8 @@ not_contains "user não vê o card Médicos na home" \
 
 assert_eq "user não acessa /medico/list (403)" "403" \
     "$(curl -s --max-time 10 -o /dev/null -w '%{http_code}' -b "$J_USER" "$BASE/medico/list")"
+assert_eq "user não acessa /usuario/list (403)" "403" \
+    "$(curl -s --max-time 10 -o /dev/null -w '%{http_code}' -b "$J_USER" "$BASE/usuario/list")"
 assert_eq "user acessa /paciente/list (200)" "200" \
     "$(curl -s --max-time 10 -o /dev/null -w '%{http_code}' -b "$J_USER" "$BASE/paciente/list")"
 assert_eq "user acessa /consulta/list (200)" "200" \
@@ -162,6 +168,37 @@ contains "admin vê o card Médicos na home" \
     "$home_admin" "Cadastro e listagem de médicos"
 assert_eq "admin acessa /medico/list (200)" "200" \
     "$(curl -s --max-time 10 -o /dev/null -w '%{http_code}' -b "$J_ADMIN" "$BASE/medico/list")"
+assert_eq "admin acessa /usuario/list (200)" "200" \
+    "$(curl -s --max-time 10 -o /dev/null -w '%{http_code}' -b "$J_ADMIN" "$BASE/usuario/list")"
+contains "admin vê a tela de usuários e papéis" \
+    "$(curl -s --max-time 10 -b "$J_ADMIN" "$BASE/usuario/list")" "Usuários e papéis"
+assert_eq "admin acessa /usuario/edit/2 (200)" "200" \
+    "$(curl -s --max-time 10 -o /dev/null -w '%{http_code}' -b "$J_ADMIN" "$BASE/usuario/edit/2")"
+
+# ---- cadastro de pessoa com criação de credenciais ----
+token="$(csrf_page "$J_ADMIN" /paciente/form)"
+assert_eq "admin cadastra paciente com credenciais" \
+    "302 $BASE/paciente/list" \
+    "$(req "$J_ADMIN" \
+        --data-urlencode "nome=Paciente CI" \
+        --data-urlencode "cpf=000.000.000-00" \
+        --data-urlencode "email=paciente.ci@email.com" \
+        --data-urlencode "telefone=(63) 90000-0000" \
+        -d "login=ci_novo" \
+        -d "senha=ci123456" \
+        -d "_csrf=$token" \
+        "$BASE/paciente/save")"
+
+assert_eq "novo usuário cadastrado autentica no sistema" \
+    "302 $BASE/" "$(login "$J_NEW" ci_novo ci123456)"
+assert_eq "novo usuário acessa /paciente/list (200)" "200" \
+    "$(curl -s --max-time 10 -o /dev/null -w '%{http_code}' -b "$J_NEW" "$BASE/paciente/list")"
+assert_eq "novo usuário não acessa /medico/list (403)" "403" \
+    "$(curl -s --max-time 10 -o /dev/null -w '%{http_code}' -b "$J_NEW" "$BASE/medico/list")"
+assert_eq "novo usuário não acessa /usuario/list (403)" "403" \
+    "$(curl -s --max-time 10 -o /dev/null -w '%{http_code}' -b "$J_NEW" "$BASE/usuario/list")"
+contains "novo usuário aparece na área administrativa" \
+    "$(curl -s --max-time 10 -b "$J_ADMIN" "$BASE/usuario/list")" "ci_novo"
 
 # ---- logout ----
 token="$(printf '%s' "$home" | grep -oE 'name="_csrf" value="[^"]*"' | head -1 | sed 's/.*value="//;s/"$//')"
