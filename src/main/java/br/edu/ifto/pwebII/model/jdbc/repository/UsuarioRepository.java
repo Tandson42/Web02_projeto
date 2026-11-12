@@ -70,10 +70,9 @@ public class UsuarioRepository {
         return total > 0;
     }
 
-    public long contarAdministradores() {
+    public long contarSecretarios() {
         return em.createQuery(
-                        "select count(distinct u) from Usuario u join u.perfis p where p.nome = :nome", Long.class)
-                .setParameter("nome", "ADMIN")
+                        "select count(distinct u) from Usuario u join u.perfis p where p.nome in ('SECRETARIO', 'ADMIN')", Long.class)
                 .getSingleResult();
     }
 }

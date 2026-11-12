@@ -9,38 +9,65 @@
     <main th:fragment="main">
         <div class="container mt-4">
             <!-- Mensagem flash enviada após cadastro/edição bem-sucedidos -->
-            <div class="alert alert-success" th:if="${mensagem != null}" th:text="${mensagem}"></div>
+            <div class="alert alert-success shadow-sm d-flex align-items-center gap-2 mb-3" th:if="${mensagem != null}">
+                <i class="bi bi-check-circle-fill"></i>
+                <span th:text="${mensagem}"></span>
+            </div>
 
-            <!-- Link para abrir o formulário de cadastro de um novo médico -->
-            <a th:href="@{/medico/form}" class="btn btn-info text-white mb-3">Novo Médico</a>
+            <!-- Cabeçalho da página -->
+            <div class="page-header">
+                <div>
+                    <h2 class="page-title">Médicos</h2>
+                    <p class="text-secondary mb-0">Corpo clínico e profissionais cadastrados.</p>
+                </div>
+                <!-- Link para abrir o formulário de cadastro de um novo médico -->
+                <a th:href="@{/medico/form}" class="btn btn-info text-white">
+                    <i class="bi bi-person-plus-fill"></i> Novo Médico
+                </a>
+            </div>
 
             <div class="table-responsive">
-                <table class="table table-striped">
+                <table class="table align-middle">
                     <thead>
                     <tr>
-                        <th>Id</th>
+                        <th style="width: 70px;">Id</th>
                         <th>Nome</th>
                         <th>CPF</th>
                         <th>Email</th>
                         <th>Telefone</th>
                         <th>CRM</th>
-                        <th colspan="3">Ações</th>
+                        <th class="text-end" style="min-width: 220px;">Ações</th>
                     </tr>
                     </thead>
-                    <tr th:each="m : ${medicos}">
-                        <td th:text="${m.id}"></td>
-                        <td th:text="${m.nome}"></td>
-                        <td th:text="${m.cpf}"></td>
-                        <td th:text="${m.email}"></td>
-                        <td th:text="${m.telefone}"></td>
-                        <td th:text="${m.crm}"></td>
-
-                        <td> <a th:href="|/medico/edit/${m.id}|">Editar</a> </td>
-                        <td> <a onclick="return window.confirm('Tem certeza que deseja excluir este registro?')"
-                               th:href="@{/medico/remove/{id}(id=${m.id})}">Excluir</a> </td>
-                        <!-- Visualizar todas as consultas realizadas por um médico -->
-                        <td> <a th:href="|/medico/consultas/${m.id}|">Consultas</a> </td>
+                    <tbody>
+                    <tr th:if="${#lists.isEmpty(medicos)}">
+                        <td colspan="7" class="text-center py-4 text-muted">Nenhum médico cadastrado até o momento.</td>
                     </tr>
+                    <tr th:each="m : ${medicos}">
+                        <td class="text-muted fw-bold" th:text="${m.id}"></td>
+                        <td class="fw-semibold text-dark" th:text="${m.nome}"></td>
+                        <td th:text="${m.cpf}"></td>
+                        <td><a class="text-decoration-none text-muted" th:href="|mailto:${m.email}|" th:text="${m.email}"></a></td>
+                        <td th:text="${m.telefone}"></td>
+                        <td><span class="badge bg-light text-dark border px-2 py-1" th:text="${m.crm}"></span></td>
+
+                        <td class="text-end">
+                            <div class="btn-group btn-group-sm">
+                                <a th:href="|/medico/edit/${m.id}|" class="btn btn-outline-secondary btn-sm" title="Editar">
+                                    <i class="bi bi-pencil"></i> Editar
+                                </a>
+                                <!-- Visualizar todas as consultas realizadas por um médico -->
+                                <a th:href="|/medico/consultas/${m.id}|" class="btn btn-outline-info btn-sm" title="Consultas">
+                                    <i class="bi bi-calendar2-check"></i> Consultas
+                                </a>
+                                <a onclick="return window.confirm('Tem certeza que deseja excluir este registro?')"
+                                   th:href="@{/medico/remove/{id}(id=${m.id})}" class="btn btn-outline-danger btn-sm" title="Excluir">
+                                    <i class="bi bi-trash"></i> Excluir
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
                 </table>
             </div>
         </div>

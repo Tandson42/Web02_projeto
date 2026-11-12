@@ -50,7 +50,7 @@ public class MedicoController {
     public ModelAndView save(@Validated({Default.class, Cadastro.class}) @ModelAttribute("medico") Medico medico,
                              BindingResult result,
                              RedirectAttributes attributes) {
-        usuarioService.criarCredenciais(medico, result);
+        usuarioService.criarCredenciais(medico, UsuarioService.PERFIL_MEDICO, result);
         if (result.hasErrors()) {
             return new ModelAndView("medico/form");
         }
@@ -83,7 +83,7 @@ public class MedicoController {
             return new ModelAndView("medico/form");
         }
 
-        usuarioService.atualizarCredenciais(medico, existente, result);
+        usuarioService.atualizarCredenciais(medico, existente, UsuarioService.PERFIL_MEDICO, result);
         if (result.hasErrors()) {
             return new ModelAndView("medico/form");
         }

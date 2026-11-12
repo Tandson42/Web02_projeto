@@ -16,29 +16,35 @@ inicialização. Os dados iniciais estão em `src/main/resources/import.sql`.
 
 ## Credenciais de demonstração
 
-| Usuário | Senha | Papéis | Pessoa vinculada |
-|---|---|---|---|
-| `admin` | `admin` | ADMIN, USER | — |
-| `user` | `123` | USER | Maria Silva |
-| `joao` | `123` | USER | João Souza |
-| `carlos` | `123` | USER | Dr. Carlos Lima |
-| `ana` | `123` | USER | Dra. Ana Costa |
-| `clinica` | `123` | USER | Clínica Saúde LTDA |
+| Usuário | Senha | Papéis | Pessoa vinculada | O que pode ver |
+|---|---|---|---|---|
+| `admin` | `admin` | ADMIN, SECRETARIO | — | Acesso total a todas as áreas |
+| `secretario` | `123` | SECRETARIO | — | Vê tudo (médicos, pacientes, consultas, usuários) |
+| `user` | `123` | PACIENTE | Maria Silva | Vê apenas suas próprias consultas (`/minhas-consultas`) |
+| `joao` | `123` | PACIENTE | João Souza | Vê apenas suas próprias consultas (`/minhas-consultas`) |
+| `carlos` | `123` | MEDICO | Dr. Carlos Lima | Vê seus pacientes (`/meus-pacientes`) e suas consultas (`/minhas-consultas-medico`) |
+| `ana` | `123` | MEDICO | Dra. Ana Costa | Vê seus pacientes (`/meus-pacientes`) e suas consultas (`/minhas-consultas-medico`) |
+| `clinica` | `123` | SECRETARIO | Clínica Saúde LTDA | Acesso de secretário |
 
 As senhas são gravadas no banco com hash BCrypt.
 
 ## Matriz de acesso
 
-| Rota | Anônimo | USER | ADMIN |
-|---|---|---|---|
-| `/login`, arquivos estáticos | Liberado | Liberado | Liberado |
-| `/` | Redireciona para login | Sim | Sim |
-| `/paciente/**`, `/consulta/**` | Redireciona para login | Sim | Sim |
-| `/medico/**` | Redireciona para login | 403 | Sim |
-| `/usuario/**` | Redireciona para login | 403 | Sim |
+| Rota | Anônimo | PACIENTE | MEDICO | SECRETARIO / ADMIN |
+|---|---|---|---|---|
+| `/login`, arquivos estáticos | Liberado | Liberado | Liberado | Liberado |
+| `/` (Menu) | Redireciona para login | Sim (vê card de suas consultas) | Sim (vê cards de seus pacientes e consultas) | Sim (vê todos os cards) |
+| `/minhas-consultas` | Redireciona para login | Sim | 403 | Sim |
+| `/meus-pacientes`, `/minhas-consultas-medico` | Redireciona para login | 403 | Sim | Sim |
+| `/paciente/consultas/**` | Redireciona para login | 403 | Sim | Sim |
+| `/paciente/**` (list, save, edit, remove) | Redireciona para login | 403 | 403 | Sim |
+| `/medico/**` | Redireciona para login | 403 | 403 | Sim |
+| `/consulta/**` | Redireciona para login | 403 | 403 | Sim |
+| `/usuario/**` | Redireciona para login | 403 | 403 | Sim |
 
-Novos pacientes e médicos recebem inicialmente o papel `USER`. O papel
-`ADMIN` pode ser atribuído na tela **Usuários e papéis**.
+Novos pacientes cadastrados recebem automaticamente o perfil `PACIENTE`.
+Novos médicos cadastrados recebem automaticamente o perfil `MEDICO`.
+Os perfis podem ser gerenciados na tela **Usuários e papéis**.
 
 ## Principais classes
 

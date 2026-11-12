@@ -2,15 +2,19 @@
 -- Usuários, perfis e associação com pessoas
 --
 -- Credenciais de demonstração:
---   admin   / admin  -> ADMIN e USER (conta administrativa)
---   user    / 123    -> USER (Maria)
---   joao    / 123    -> USER (João)
---   carlos  / 123    -> USER (Dr. Carlos)
---   ana     / 123    -> USER (Dra. Ana)
---   clinica / 123    -> USER (Clínica Saúde)
+--   admin      / admin -> ADMIN e SECRETARIO (conta administrativa completa)
+--   secretario / 123   -> SECRETARIO (acesso a médicos, pacientes, consultas, usuários)
+--   user       / 123   -> PACIENTE (Maria Silva - vê apenas suas consultas)
+--   joao       / 123   -> PACIENTE (João Souza - vê apenas suas consultas)
+--   carlos     / 123   -> MEDICO (Dr. Carlos Lima - vê seus pacientes e consultas)
+--   ana        / 123   -> MEDICO (Dra. Ana Costa - vê seus pacientes e consultas)
+--   clinica    / 123   -> SECRETARIO (Clínica Saúde LTDA)
 -- As senhas abaixo já estão codificadas com BCrypt.
 -- ============================================================
 INSERT INTO perfil (nome) VALUES ('ADMIN');
+INSERT INTO perfil (nome) VALUES ('SECRETARIO');
+INSERT INTO perfil (nome) VALUES ('PACIENTE');
+INSERT INTO perfil (nome) VALUES ('MEDICO');
 INSERT INTO perfil (nome) VALUES ('USER');
 
 INSERT INTO usuario (usuario, senha) VALUES ('admin', '$2a$10$bNNAqeWsFoLwIRaghWNWrO5vKCq648XRbRMxrlY29pP.hVRvttLEq');
@@ -19,14 +23,24 @@ INSERT INTO usuario (usuario, senha) VALUES ('joao', '$2a$10$dj.LiJmM71c21rsaJzW
 INSERT INTO usuario (usuario, senha) VALUES ('carlos', '$2a$10$dj.LiJmM71c21rsaJzWrfurcSJArX8wY9KYW4smnC1jqi88EZuPrW');
 INSERT INTO usuario (usuario, senha) VALUES ('ana', '$2a$10$dj.LiJmM71c21rsaJzWrfurcSJArX8wY9KYW4smnC1jqi88EZuPrW');
 INSERT INTO usuario (usuario, senha) VALUES ('clinica', '$2a$10$dj.LiJmM71c21rsaJzWrfurcSJArX8wY9KYW4smnC1jqi88EZuPrW');
+INSERT INTO usuario (usuario, senha) VALUES ('secretario', '$2a$10$dj.LiJmM71c21rsaJzWrfurcSJArX8wY9KYW4smnC1jqi88EZuPrW');
 
+-- Perfis associados:
+-- admin: ADMIN (1) e SECRETARIO (2)
 INSERT INTO usuario_perfil (id_usuario, id_perfil) VALUES (1, 1);
 INSERT INTO usuario_perfil (id_usuario, id_perfil) VALUES (1, 2);
-INSERT INTO usuario_perfil (id_usuario, id_perfil) VALUES (2, 2);
-INSERT INTO usuario_perfil (id_usuario, id_perfil) VALUES (3, 2);
-INSERT INTO usuario_perfil (id_usuario, id_perfil) VALUES (4, 2);
-INSERT INTO usuario_perfil (id_usuario, id_perfil) VALUES (5, 2);
+-- user (Maria): PACIENTE (3)
+INSERT INTO usuario_perfil (id_usuario, id_perfil) VALUES (2, 3);
+-- joao (João): PACIENTE (3)
+INSERT INTO usuario_perfil (id_usuario, id_perfil) VALUES (3, 3);
+-- carlos (Dr. Carlos): MEDICO (4)
+INSERT INTO usuario_perfil (id_usuario, id_perfil) VALUES (4, 4);
+-- ana (Dra. Ana): MEDICO (4)
+INSERT INTO usuario_perfil (id_usuario, id_perfil) VALUES (5, 4);
+-- clinica: SECRETARIO (2)
 INSERT INTO usuario_perfil (id_usuario, id_perfil) VALUES (6, 2);
+-- secretario: SECRETARIO (2)
+INSERT INTO usuario_perfil (id_usuario, id_perfil) VALUES (7, 2);
 
 -- ============================================================
 -- Pessoas, pacientes, médicos e consultas

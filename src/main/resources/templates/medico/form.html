@@ -8,88 +8,127 @@
 
     <main th:fragment="main">
         <div class="container mt-4">
-            <h3>Página FORM de Médico!</h3>
-            <!-- th:object liga o formulário ao médico; th:field vincula cada
-                 campo e th:errors/th:errorclass exibem as mensagens de validação -->
-            <form th:action="${medico.id != null} ? @{/medico/update} : @{/medico/save}"
-                  th:object="${medico}" method="post">
-                <div class="alert alert-danger" th:if="${#fields.hasAnyErrors()}">
-                    <div th:each="erro : ${#fields.detailedErrors()}">
-                        <span th:text="${erro.message}"></span>
+            <div class="row justify-content-center">
+                <div class="col-lg-8 col-md-10">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-white py-3 d-flex align-items-center justify-content-between">
+                            <h3 class="h5 mb-0 fw-bold">
+                                <i class="bi bi-hospital text-info me-2"></i>
+                                <span th:text="${medico.id != null} ? 'Editar Médico' : 'Novo Médico'"></span>
+                            </h3>
+                            <a th:href="@{/medico/list}" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-arrow-left"></i> Voltar para a lista
+                            </a>
+                        </div>
+                        <div class="card-body p-4">
+                            <!-- th:object liga o formulário ao médico -->
+                            <form th:action="${medico.id != null} ? @{/medico/update} : @{/medico/save}"
+                                  th:object="${medico}" method="post">
+                                <div class="alert alert-danger shadow-sm d-flex align-items-center gap-2 mb-3" th:if="${#fields.hasAnyErrors()}">
+                                    <i class="bi bi-exclamation-triangle-fill"></i>
+                                    <div>
+                                        <div th:each="erro : ${#fields.detailedErrors()}">
+                                            <span th:text="${erro.message}"></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- sem o id, o JPA não sabe qual linha atualizar -->
+                                <input type="hidden" th:field="*{id}"/>
+
+                                <h6 class="text-uppercase text-secondary fw-bold small mb-3">
+                                    <i class="bi bi-card-text me-1"></i> Dados do Profissional
+                                </h6>
+
+                                <div class="row g-3 mb-4">
+                                    <div class="col-md-7">
+                                        <label class="form-label" for="nome">Nome Completo</label>
+                                        <input type="text" class="form-control" id="nome"
+                                               th:field="*{nome}" th:errorclass="is-invalid"
+                                               placeholder="Dr(a). Nome"/>
+                                        <div class="invalid-feedback" th:if="${#fields.hasErrors('nome')}"
+                                             th:errors="*{nome}"></div>
+                                    </div>
+
+                                    <div class="col-md-5">
+                                        <label class="form-label" for="crm">CRM</label>
+                                        <input type="text" class="form-control" id="crm"
+                                               th:field="*{crm}" th:errorclass="is-invalid"
+                                               placeholder="CRM-00000"/>
+                                        <div class="invalid-feedback" th:if="${#fields.hasErrors('crm')}"
+                                             th:errors="*{crm}"></div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label class="form-label" for="cpf">CPF</label>
+                                        <input type="text" class="form-control" id="cpf"
+                                               th:field="*{cpf}" th:errorclass="is-invalid"
+                                               placeholder="000.000.000-00"/>
+                                        <div class="invalid-feedback" th:if="${#fields.hasErrors('cpf')}"
+                                             th:errors="*{cpf}"></div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label class="form-label" for="email">E-mail</label>
+                                        <input type="email" class="form-control" id="email"
+                                               th:field="*{email}" th:errorclass="is-invalid"
+                                               placeholder="medico@email.com"/>
+                                        <div class="invalid-feedback" th:if="${#fields.hasErrors('email')}"
+                                             th:errors="*{email}"></div>
+                                    </div>
+
+                                    <div class="col-md-4">
+                                        <label class="form-label" for="telefone">Telefone</label>
+                                        <input type="text" class="form-control" id="telefone"
+                                               th:field="*{telefone}" th:errorclass="is-invalid"
+                                               placeholder="(00) 00000-0000"/>
+                                        <div class="invalid-feedback" th:if="${#fields.hasErrors('telefone')}"
+                                             th:errors="*{telefone}"></div>
+                                    </div>
+                                </div>
+
+                                <h6 class="text-uppercase text-secondary fw-bold small mb-3">
+                                    <i class="bi bi-shield-lock me-1"></i> Acesso ao Sistema
+                                </h6>
+
+                                <div class="row g-3 mb-4 p-3 bg-light rounded border">
+                                    <div class="col-md-6">
+                                        <label class="form-label" for="login">Usuário de Acesso</label>
+                                        <input type="text" class="form-control" id="login"
+                                               th:field="*{login}" th:errorclass="is-invalid"
+                                               autocomplete="username" placeholder="ex.: carlos.lima"/>
+                                        <div class="invalid-feedback" th:if="${#fields.hasErrors('login')}"
+                                             th:errors="*{login}"></div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label" for="senha"
+                                               th:text="${medico.id != null} ? 'Nova senha (em branco para manter)' : 'Senha de Acesso'">Senha</label>
+                                        <input type="password" class="form-control" id="senha" name="senha"
+                                               autocomplete="new-password"
+                                               placeholder="••••••••"
+                                               th:classappend="${#fields.hasErrors('senha')} ? 'is-invalid'"/>
+                                        <div class="invalid-feedback" th:if="${#fields.hasErrors('senha')}"
+                                             th:errors="*{senha}"></div>
+                                        <div class="form-text text-muted small" th:if="${medico.id == null}">
+                                            Mínimo de 6 caracteres.
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-info text-white">
+                                        <i class="bi bi-check2-circle"></i> Salvar Médico
+                                    </button>
+                                    <a th:href="@{/medico/list}" class="btn btn-outline-secondary">
+                                        <i class="bi bi-x-circle"></i> Cancelar
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
-
-                <!-- sem o id, o JPA não sabe qual linha atualizar -->
-                <input type="hidden" th:field="*{id}"/>
-
-                <div class="mb-3">
-                    <label class="form-label" for="nome">Nome</label>
-                    <input type="text" class="form-control" id="nome"
-                           th:field="*{nome}" th:errorclass="is-invalid"/>
-                    <div class="invalid-feedback" th:if="${#fields.hasErrors('nome')}"
-                         th:errors="*{nome}"></div>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label" for="cpf">CPF</label>
-                    <input type="text" class="form-control" id="cpf"
-                           th:field="*{cpf}" th:errorclass="is-invalid"/>
-                    <div class="invalid-feedback" th:if="${#fields.hasErrors('cpf')}"
-                         th:errors="*{cpf}"></div>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label" for="email">Email</label>
-                    <input type="email" class="form-control" id="email"
-                           th:field="*{email}" th:errorclass="is-invalid"/>
-                    <div class="invalid-feedback" th:if="${#fields.hasErrors('email')}"
-                         th:errors="*{email}"></div>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label" for="telefone">Telefone</label>
-                    <input type="text" class="form-control" id="telefone"
-                           th:field="*{telefone}" th:errorclass="is-invalid"/>
-                    <div class="invalid-feedback" th:if="${#fields.hasErrors('telefone')}"
-                         th:errors="*{telefone}"></div>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label" for="crm">CRM</label>
-                    <input type="text" class="form-control" id="crm"
-                           th:field="*{crm}" th:errorclass="is-invalid"/>
-                    <div class="invalid-feedback" th:if="${#fields.hasErrors('crm')}"
-                         th:errors="*{crm}"></div>
-                </div>
-
-                <h5 class="mt-4">Acesso ao sistema</h5>
-                <hr/>
-
-                <div class="mb-3">
-                    <label class="form-label" for="login">Usuário</label>
-                    <input type="text" class="form-control" id="login"
-                           th:field="*{login}" th:errorclass="is-invalid"
-                           autocomplete="username" placeholder="ex.: carlos.lima"/>
-                    <div class="invalid-feedback" th:if="${#fields.hasErrors('login')}"
-                         th:errors="*{login}"></div>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label" for="senha"
-                           th:text="${medico.id != null} ? 'Nova senha (deixe em branco para manter)' : 'Senha'">Senha</label>
-                    <input type="password" class="form-control" id="senha" name="senha"
-                           autocomplete="new-password"
-                           th:classappend="${#fields.hasErrors('senha')} ? 'is-invalid'"/>
-                    <div class="invalid-feedback" th:if="${#fields.hasErrors('senha')}"
-                         th:errors="*{senha}"></div>
-                    <div class="form-text" th:if="${medico.id == null}">
-                        A senha deve ter no mínimo 6 caracteres.
-                    </div>
-                </div>
-
-                <button type="submit" class="btn btn-info text-white">Salvar</button>
-            </form>
-            <a th:href="@{/medico/list}" class="btn btn-outline-secondary mt-2">Voltar para a lista</a>
+            </div>
         </div>
     </main>
 </html>

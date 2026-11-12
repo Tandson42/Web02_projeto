@@ -21,7 +21,10 @@ import java.util.Set;
 @Service
 public class UsuarioService {
 
-    private static final String PERFIL_INICIAL = "USER";
+    public static final String PERFIL_PACIENTE = "PACIENTE";
+    public static final String PERFIL_MEDICO = "MEDICO";
+    public static final String PERFIL_SECRETARIO = "SECRETARIO";
+    public static final String PERFIL_ADMIN = "ADMIN";
 
     private final UsuarioRepository usuarioRepository;
     private final PerfilRepository perfilRepository;
@@ -36,10 +39,11 @@ public class UsuarioService {
     }
 
     /**
-     * Cria a conta de acesso de uma nova pessoa, com senha BCrypt e perfil inicial USER.
+     * Cria a conta de acesso de uma nova pessoa, com senha BCrypt e o perfil
+     * compatível com o tipo de pessoa (PACIENTE ou MEDICO).
      */
     @Transactional
-    public void criarCredenciais(Pessoa pessoa, BindingResult result) {
+    public void criarCredenciais(Pessoa pessoa, String nomePerfilInicial, BindingResult result) {
         if (result.hasErrors()) {
             return;
         }
@@ -58,7 +62,7 @@ public class UsuarioService {
         Usuario usuario = new Usuario();
         usuario.setUsuario(pessoa.getLogin().trim());
         usuario.setSenha(passwordEncoder.encode(pessoa.getSenha()));
-        usuario.getPerfis().add(perfilInicial());
+        usuario.getPerfis().add(perfilInicial(nomePerfilInicial));
         pessoa.setUsuario(usuario);
     }
 
@@ -68,7 +72,8 @@ public class UsuarioService {
      * login e senha sejam informados.
      */
     @Transactional
-    public void atualizarCredenciais(Pessoa formulario, Pessoa existente, BindingResult result) {
+    public void atualizarCredenciais(Pessoa formulario, Pessoa existente,
+                                     String nomePerfilInicial, BindingResult result) {
         if (result.hasErrors()) {
             return;
         }
@@ -94,7 +99,7 @@ public class UsuarioService {
             Usuario novo = new Usuario();
             novo.setUsuario(formulario.getLogin().trim());
             novo.setSenha(passwordEncoder.encode(formulario.getSenha()));
-            novo.getPerfis().add(perfilInicial());
+            novo.getPerfis().add(perfilInicial(nomePerfilInicial));
             existente.setUsuario(novo);
             formulario.setUsuario(novo);
             return;
@@ -143,19 +148,19 @@ public class UsuarioService {
             return;
         }
 
-        boolean eraAdmin = possuiPerfil(usuario, "ADMIN");
-        boolean continuaAdmin = novosPerfis.stream()
-                .anyMatch(p -> "ADMIN".equalsIgnoreCase(p.getNome()));
+        boolean eraSecretario = possuiPerfil(usuario, PERFIL_SECRETARIO) || possuiPerfil(usuario, PERFIL_ADMIN);
+        boolean continuaSecretario = novosPerfis.stream()
+                .anyMatch(p -> PERFIL_SECRETARIO.equalsIgnoreCase(p.getNome()) || PERFIL_ADMIN.equalsIgnoreCase(p.getNome()));
 
-        if (eraAdmin && !continuaAdmin) {
+        if (eraSecretario && !continuaSecretario) {
             if (usuario.getId().equals(idAdministradorLogado)) {
-                result.rejectValue("perfis", "perfis.proprioAdmin",
-                        "Você não pode remover o seu próprio papel ADMIN.");
+                result.rejectValue("perfis", "perfis.proprioSecretario",
+                        "Você não pode remover o seu próprio perfil de secretário.");
                 return;
             }
-            if (usuarioRepository.contarAdministradores() <= 1) {
-                result.rejectValue("perfis", "perfis.ultimoAdmin",
-                        "O sistema deve manter ao menos um usuário ADMIN.");
+            if (usuarioRepository.contarSecretarios() <= 1) {
+                result.rejectValue("perfis", "perfis.ultimoSecretario",
+                        "O sistema deve manter ao menos um usuário com perfil SECRETARIO.");
                 return;
             }
         }
@@ -212,11 +217,11 @@ public class UsuarioService {
         }
     }
 
-    private Perfil perfilInicial() {
-        Perfil perfil = perfilRepository.porNome(PERFIL_INICIAL);
+    private Perfil perfilInicial(String nomePerfil) {
+        Perfil perfil = perfilRepository.porNome(nomePerfil);
         if (perfil == null) {
             perfil = new Perfil();
-            perfil.setNome(PERFIL_INICIAL);
+            perfil.setNome(nomePerfil);
             perfilRepository.save(perfil);
         }
         return perfil;

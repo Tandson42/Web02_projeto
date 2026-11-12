@@ -113,8 +113,10 @@ echo "    aplicação no ar"
 echo
 
 J_USER="$TMP/user.txt"
-J_ERR="$TMP/err.txt"
+J_MEDICO="$TMP/medico.txt"
+J_SEC="$TMP/secretario.txt"
 J_ADMIN="$TMP/admin.txt"
+J_ERR="$TMP/err.txt"
 J_NEW="$TMP/new.txt"
 
 # ---- anônimo ----
@@ -122,6 +124,8 @@ assert_eq "anônimo em / é redirecionado para /login" \
     "302 $BASE/login" "$(req /dev/null "$BASE/")"
 assert_eq "anônimo em /medico/list é redirecionado para /login" \
     "302 $BASE/login" "$(req /dev/null "$BASE/medico/list")"
+assert_eq "anônimo em /minhas-consultas é redirecionado para /login" \
+    "302 $BASE/login" "$(req /dev/null "$BASE/minhas-consultas")"
 
 # ---- página de login ----
 assert_eq "GET /login devolve 200" "200" \
@@ -129,27 +133,88 @@ assert_eq "GET /login devolve 200" "200" \
 contains "GET /login exibe o formulário" \
     "$(curl -s --max-time 10 "$BASE/login")" "Informe usuário e senha"
 
-# ---- usuário comum ----
+# ---- paciente (user/123) ----
 assert_eq "login user/123 autentica e volta para /" \
     "302 $BASE/" "$(login "$J_USER" user 123)"
 
-home="$(curl -s --max-time 10 -b "$J_USER" "$BASE/")"
-contains "home exibe o usuário autenticado (sec:authentication)" \
-    "$home" "Olá, <strong>user</strong>"
-contains "home exibe o botão Sair" "$home" ">Sair<"
-not_contains "user não vê o item Médicos na navbar" \
-    "$home" '<a class="nav-link" href="/medico/list">Médicos</a>'
-not_contains "user não vê o card Médicos na home" \
-    "$home" "Cadastro e listagem de médicos"
+home_paciente="$(curl -s --max-time 10 -b "$J_USER" "$BASE/")"
+contains "home do paciente exibe o usuário autenticado" \
+    "$home_paciente" "Olá, <strong>user</strong>"
+contains "home do paciente exibe link para Minhas Consultas" \
+    "$home_paciente" "/minhas-consultas"
+not_contains "paciente não vê Médicos na home" \
+    "$home_paciente" "Cadastro e listagem de médicos"
+not_contains "paciente não vê Pacientes na home" \
+    "$home_paciente" "Cadastro e listagem de pacientes"
+not_contains "paciente não vê Consultas na home" \
+    "$home_paciente" "Agendamento e listagem de consultas"
+not_contains "paciente não vê Usuários na navbar" \
+    "$home_paciente" '<a class="nav-link" href="/usuario/list">Usuários</a>'
 
-assert_eq "user não acessa /medico/list (403)" "403" \
-    "$(curl -s --max-time 10 -o /dev/null -w '%{http_code}' -b "$J_USER" "$BASE/medico/list")"
-assert_eq "user não acessa /usuario/list (403)" "403" \
-    "$(curl -s --max-time 10 -o /dev/null -w '%{http_code}' -b "$J_USER" "$BASE/usuario/list")"
-assert_eq "user acessa /paciente/list (200)" "200" \
+assert_eq "paciente acessa /minhas-consultas (200)" "200" \
+    "$(curl -s --max-time 10 -o /dev/null -w '%{http_code}' -b "$J_USER" "$BASE/minhas-consultas")"
+contains "página minhas-consultas exibe consultas do paciente" \
+    "$(curl -s --max-time 10 -b "$J_USER" "$BASE/minhas-consultas")" "Consultas de"
+assert_eq "paciente não acessa /paciente/list (403)" "403" \
     "$(curl -s --max-time 10 -o /dev/null -w '%{http_code}' -b "$J_USER" "$BASE/paciente/list")"
-assert_eq "user acessa /consulta/list (200)" "200" \
+assert_eq "paciente não acessa /medico/list (403)" "403" \
+    "$(curl -s --max-time 10 -o /dev/null -w '%{http_code}' -b "$J_USER" "$BASE/medico/list")"
+assert_eq "paciente não acessa /consulta/list (403)" "403" \
     "$(curl -s --max-time 10 -o /dev/null -w '%{http_code}' -b "$J_USER" "$BASE/consulta/list")"
+assert_eq "paciente não acessa /usuario/list (403)" "403" \
+    "$(curl -s --max-time 10 -o /dev/null -w '%{http_code}' -b "$J_USER" "$BASE/usuario/list")"
+assert_eq "paciente não acessa /meus-pacientes (403)" "403" \
+    "$(curl -s --max-time 10 -o /dev/null -w '%{http_code}' -b "$J_USER" "$BASE/meus-pacientes")"
+
+# ---- médico (carlos/123) ----
+assert_eq "login carlos/123 autentica e volta para /" \
+    "302 $BASE/" "$(login "$J_MEDICO" carlos 123)"
+
+home_medico="$(curl -s --max-time 10 -b "$J_MEDICO" "$BASE/")"
+contains "home do médico exibe link para Meus Pacientes" \
+    "$home_medico" "/meus-pacientes"
+contains "home do médico exibe link para Minhas Consultas" \
+    "$home_medico" "/minhas-consultas-medico"
+not_contains "médico não vê Médicos na home" \
+    "$home_medico" "Cadastro e listagem de médicos"
+not_contains "médico não vê Usuários na home" \
+    "$home_medico" "Gerenciamento de contas e permissões de acesso"
+
+assert_eq "médico acessa /meus-pacientes (200)" "200" \
+    "$(curl -s --max-time 10 -o /dev/null -w '%{http_code}' -b "$J_MEDICO" "$BASE/meus-pacientes")"
+assert_eq "médico acessa /minhas-consultas-medico (200)" "200" \
+    "$(curl -s --max-time 10 -o /dev/null -w '%{http_code}' -b "$J_MEDICO" "$BASE/minhas-consultas-medico")"
+assert_eq "médico não acessa /medico/list (403)" "403" \
+    "$(curl -s --max-time 10 -o /dev/null -w '%{http_code}' -b "$J_MEDICO" "$BASE/medico/list")"
+assert_eq "médico não acessa /paciente/list (403)" "403" \
+    "$(curl -s --max-time 10 -o /dev/null -w '%{http_code}' -b "$J_MEDICO" "$BASE/paciente/list")"
+assert_eq "médico não acessa /consulta/list (403)" "403" \
+    "$(curl -s --max-time 10 -o /dev/null -w '%{http_code}' -b "$J_MEDICO" "$BASE/consulta/list")"
+assert_eq "médico não acessa /usuario/list (403)" "403" \
+    "$(curl -s --max-time 10 -o /dev/null -w '%{http_code}' -b "$J_MEDICO" "$BASE/usuario/list")"
+
+# ---- secretário (secretario/123) ----
+assert_eq "login secretario/123 autentica e volta para /" \
+    "302 $BASE/" "$(login "$J_SEC" secretario 123)"
+
+home_sec="$(curl -s --max-time 10 -b "$J_SEC" "$BASE/")"
+contains "secretário vê Médicos na navbar" \
+    "$home_sec" '<a class="nav-link" href="/medico/list">Médicos</a>'
+contains "secretário vê Pacientes na navbar" \
+    "$home_sec" '<a class="nav-link" href="/paciente/list">Pacientes</a>'
+contains "secretário vê Consultas na navbar" \
+    "$home_sec" '<a class="nav-link" href="/consulta/list">Consultas</a>'
+contains "secretário vê Usuários na navbar" \
+    "$home_sec" '<a class="nav-link" href="/usuario/list">Usuários</a>'
+
+assert_eq "secretário acessa /medico/list (200)" "200" \
+    "$(curl -s --max-time 10 -o /dev/null -w '%{http_code}' -b "$J_SEC" "$BASE/medico/list")"
+assert_eq "secretário acessa /paciente/list (200)" "200" \
+    "$(curl -s --max-time 10 -o /dev/null -w '%{http_code}' -b "$J_SEC" "$BASE/paciente/list")"
+assert_eq "secretário acessa /consulta/list (200)" "200" \
+    "$(curl -s --max-time 10 -o /dev/null -w '%{http_code}' -b "$J_SEC" "$BASE/consulta/list")"
+assert_eq "secretário acessa /usuario/list (200)" "200" \
+    "$(curl -s --max-time 10 -o /dev/null -w '%{http_code}' -b "$J_SEC" "$BASE/usuario/list")"
 
 # ---- credenciais erradas ----
 assert_eq "senha errada volta para /login?error" \
@@ -161,11 +226,6 @@ contains "página de erro exibe a mensagem" \
 assert_eq "login admin/admin autentica e volta para /" \
     "302 $BASE/" "$(login "$J_ADMIN" admin admin)"
 
-home_admin="$(curl -s --max-time 10 -b "$J_ADMIN" "$BASE/")"
-contains "admin vê o item Médicos na navbar" \
-    "$home_admin" '<a class="nav-link" href="/medico/list">Médicos</a>'
-contains "admin vê o card Médicos na home" \
-    "$home_admin" "Cadastro e listagem de médicos"
 assert_eq "admin acessa /medico/list (200)" "200" \
     "$(curl -s --max-time 10 -o /dev/null -w '%{http_code}' -b "$J_ADMIN" "$BASE/medico/list")"
 assert_eq "admin acessa /usuario/list (200)" "200" \
@@ -175,33 +235,35 @@ contains "admin vê a tela de usuários e papéis" \
 assert_eq "admin acessa /usuario/edit/2 (200)" "200" \
     "$(curl -s --max-time 10 -o /dev/null -w '%{http_code}' -b "$J_ADMIN" "$BASE/usuario/edit/2")"
 
-# ---- cadastro de pessoa com criação de credenciais ----
-token="$(csrf_page "$J_ADMIN" /paciente/form)"
-assert_eq "admin cadastra paciente com credenciais" \
+# ---- cadastro de paciente com criação de credenciais PACIENTE ----
+token="$(csrf_page "$J_SEC" /paciente/form)"
+assert_eq "secretário cadastra paciente com credenciais" \
     "302 $BASE/paciente/list" \
-    "$(req "$J_ADMIN" \
+    "$(req "$J_SEC" \
         --data-urlencode "nome=Paciente CI" \
         --data-urlencode "cpf=000.000.000-00" \
         --data-urlencode "email=paciente.ci@email.com" \
         --data-urlencode "telefone=(63) 90000-0000" \
-        -d "login=ci_novo" \
+        -d "login=ci_paciente" \
         -d "senha=ci123456" \
         -d "_csrf=$token" \
         "$BASE/paciente/save")"
 
-assert_eq "novo usuário cadastrado autentica no sistema" \
-    "302 $BASE/" "$(login "$J_NEW" ci_novo ci123456)"
-assert_eq "novo usuário acessa /paciente/list (200)" "200" \
+assert_eq "novo paciente cadastrado autentica no sistema" \
+    "302 $BASE/" "$(login "$J_NEW" ci_paciente ci123456)"
+assert_eq "novo paciente acessa /minhas-consultas (200)" "200" \
+    "$(curl -s --max-time 10 -o /dev/null -w '%{http_code}' -b "$J_NEW" "$BASE/minhas-consultas")"
+assert_eq "novo paciente não acessa /paciente/list (403)" "403" \
     "$(curl -s --max-time 10 -o /dev/null -w '%{http_code}' -b "$J_NEW" "$BASE/paciente/list")"
-assert_eq "novo usuário não acessa /medico/list (403)" "403" \
+assert_eq "novo paciente não acessa /medico/list (403)" "403" \
     "$(curl -s --max-time 10 -o /dev/null -w '%{http_code}' -b "$J_NEW" "$BASE/medico/list")"
-assert_eq "novo usuário não acessa /usuario/list (403)" "403" \
+assert_eq "novo paciente não acessa /usuario/list (403)" "403" \
     "$(curl -s --max-time 10 -o /dev/null -w '%{http_code}' -b "$J_NEW" "$BASE/usuario/list")"
-contains "novo usuário aparece na área administrativa" \
-    "$(curl -s --max-time 10 -b "$J_ADMIN" "$BASE/usuario/list")" "ci_novo"
+contains "novo paciente aparece na área administrativa de usuários" \
+    "$(curl -s --max-time 10 -b "$J_SEC" "$BASE/usuario/list")" "ci_paciente"
 
 # ---- logout ----
-token="$(printf '%s' "$home" | grep -oE 'name="_csrf" value="[^"]*"' | head -1 | sed 's/.*value="//;s/"$//')"
+token="$(printf '%s' "$home_paciente" | grep -oE 'name="_csrf" value="[^"]*"' | head -1 | sed 's/.*value="//;s/"$//')"
 assert_eq "logout via POST encerra a sessão" \
     "302 $BASE/login?logout" "$(req "$J_USER" -d "_csrf=$token" "$BASE/logout")"
 assert_eq "após logout, / volta a exigir login" \

@@ -20,10 +20,16 @@ public class SecurityConfiguration {
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()
                 .requestMatchers("/login", "/error").permitAll()
-                // funcionalidades administrativas: somente ADMIN
-                .requestMatchers("/medico/**").hasRole("ADMIN")
-                .requestMatchers("/usuario/**").hasRole("ADMIN")
-                // pacientes e consultas: qualquer usuário autenticado (USER ou ADMIN)
+                // área do paciente: somente as próprias consultas
+                .requestMatchers("/minhas-consultas").hasRole("PACIENTE")
+                // área do médico: somente os próprios pacientes e consultas
+                .requestMatchers("/meus-pacientes", "/minhas-consultas-medico").hasRole("MEDICO")
+                .requestMatchers("/paciente/consultas/**").hasAnyRole("SECRETARIO", "ADMIN", "MEDICO")
+                // secretário e admin: acesso completo às funcionalidades administrativas e de cadastro
+                .requestMatchers("/medico/**").hasAnyRole("SECRETARIO", "ADMIN")
+                .requestMatchers("/paciente/**").hasAnyRole("SECRETARIO", "ADMIN")
+                .requestMatchers("/consulta/**").hasAnyRole("SECRETARIO", "ADMIN")
+                .requestMatchers("/usuario/**").hasAnyRole("SECRETARIO", "ADMIN")
                 .anyRequest().authenticated()
             )
             .formLogin(form -> form

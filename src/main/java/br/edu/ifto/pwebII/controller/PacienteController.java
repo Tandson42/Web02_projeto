@@ -50,7 +50,7 @@ public class PacienteController {
     public ModelAndView save(@Validated({Default.class, Cadastro.class}) @ModelAttribute("paciente") Paciente paciente,
                              BindingResult result,
                              RedirectAttributes attributes) {
-        usuarioService.criarCredenciais(paciente, result);
+        usuarioService.criarCredenciais(paciente, UsuarioService.PERFIL_PACIENTE, result);
         if (result.hasErrors()) {
             return new ModelAndView("paciente/form");
         }
@@ -83,7 +83,7 @@ public class PacienteController {
             return new ModelAndView("paciente/form");
         }
 
-        usuarioService.atualizarCredenciais(paciente, existente, result);
+        usuarioService.atualizarCredenciais(paciente, existente, UsuarioService.PERFIL_PACIENTE, result);
         if (result.hasErrors()) {
             return new ModelAndView("paciente/form");
         }
