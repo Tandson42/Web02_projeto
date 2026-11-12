@@ -54,4 +54,12 @@ public class MedicoRepository {
         query.setParameter("id", id);
         return query.getResultList();
     }
+
+    public Medico porUsuario(String login) {
+        List<Medico> list = em.createQuery(
+                "select m from Medico m where lower(m.usuario.usuario) = lower(:login)", Medico.class)
+                .setParameter("login", login)
+                .getResultList();
+        return list.isEmpty() ? null : list.get(0);
+    }
 }

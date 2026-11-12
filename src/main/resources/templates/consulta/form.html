@@ -8,79 +8,106 @@
 
     <main th:fragment="main">
         <div class="container mt-4">
-            <h3>Página FORM de Consulta!</h3>
-            <!-- th:object liga o formulário à consulta; th:field/th:errors/th:errorclass
-                 exibem as mensagens de validação no formulário -->
-            <form th:action="${consulta.id != null} ? @{/consulta/update} : @{/consulta/save}"
-                  th:object="${consulta}" method="post">
-                <div class="alert alert-danger" th:if="${#fields.hasAnyErrors()}">
-                    <div th:each="erro : ${#fields.detailedErrors()}">
-                        <span th:text="${erro.message}"></span>
+            <div class="row justify-content-center">
+                <div class="col-lg-7 col-md-9">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-white py-3 d-flex align-items-center justify-content-between">
+                            <h3 class="h5 mb-0 fw-bold">
+                                <i class="bi bi-calendar-check text-info me-2"></i>
+                                <span th:text="${consulta.id != null} ? 'Editar Consulta' : 'Nova Consulta'"></span>
+                            </h3>
+                            <a th:href="@{/consulta/list}" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-arrow-left"></i> Voltar para a lista
+                            </a>
+                        </div>
+                        <div class="card-body p-4">
+                            <!-- th:object liga o formulário à consulta -->
+                            <form th:action="${consulta.id != null} ? @{/consulta/update} : @{/consulta/save}"
+                                  th:object="${consulta}" method="post">
+                                <div class="alert alert-danger shadow-sm d-flex align-items-center gap-2 mb-3" th:if="${#fields.hasAnyErrors()}">
+                                    <i class="bi bi-exclamation-triangle-fill"></i>
+                                    <div>
+                                        <div th:each="erro : ${#fields.detailedErrors()}">
+                                            <span th:text="${erro.message}"></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- sem o id, o JPA não sabe qual linha atualizar -->
+                                <input type="hidden" th:field="*{id}"/>
+
+                                <div class="row g-3 mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label" for="data">Data e Hora</label>
+                                        <input type="datetime-local" class="form-control" id="data" name="data"
+                                               th:value="${consulta?.data != null ? #temporals.format(consulta.data, 'yyyy-MM-dd''T''HH:mm') : ''}"
+                                               th:classappend="${#fields.hasErrors('data')} ? 'is-invalid'"/>
+                                        <div class="invalid-feedback" th:if="${#fields.hasErrors('data')}"
+                                             th:errors="*{data}"></div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label" for="valor">Valor (R$)</label>
+                                        <input type="number" class="form-control" id="valor" step="0.01"
+                                               placeholder="0.00"
+                                               th:field="*{valor}" th:errorclass="is-invalid"/>
+                                        <div class="invalid-feedback" th:if="${#fields.hasErrors('valor')}"
+                                             th:errors="*{valor}"></div>
+                                    </div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label" for="observacao">Observação / Motivo</label>
+                                    <input type="text" class="form-control" id="observacao"
+                                           placeholder="Ex.: Consulta de rotina, retorno..."
+                                           th:field="*{observacao}" th:errorclass="is-invalid"/>
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('observacao')}"
+                                         th:errors="*{observacao}"></div>
+                                </div>
+
+                                <div class="row g-3 mb-4">
+                                    <div class="col-md-6">
+                                        <label class="form-label">Paciente</label>
+                                        <select class="form-select" name="paciente.id"
+                                                th:classappend="${#fields.hasErrors('paciente.id')} ? 'is-invalid'">
+                                            <option value="">Selecione o paciente...</option>
+                                            <option th:each="p : ${pacientes}"
+                                                    th:value="${p.id}"
+                                                    th:text="${p.nome}"
+                                                    th:selected="${p.id == consulta?.paciente?.id}"></option>
+                                        </select>
+                                        <div class="invalid-feedback" th:if="${#fields.hasErrors('paciente.id')}"
+                                             th:errors="*{paciente.id}"></div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label">Médico</label>
+                                        <select class="form-select" name="medico.id"
+                                                th:classappend="${#fields.hasErrors('medico.id')} ? 'is-invalid'">
+                                            <option value="">Selecione o médico...</option>
+                                            <option th:each="m : ${medicos}"
+                                                    th:value="${m.id}"
+                                                    th:text="${m.nome}"
+                                                    th:selected="${m.id == consulta?.medico?.id}"></option>
+                                        </select>
+                                        <div class="invalid-feedback" th:if="${#fields.hasErrors('medico.id')}"
+                                             th:errors="*{medico.id}"></div>
+                                    </div>
+                                </div>
+
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-info text-white">
+                                        <i class="bi bi-check2-circle"></i> Salvar Consulta
+                                    </button>
+                                    <a th:href="@{/consulta/list}" class="btn btn-outline-secondary">
+                                        <i class="bi bi-x-circle"></i> Cancelar
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
-
-                <!-- sem o id, o JPA não sabe qual linha atualizar -->
-                <input type="hidden" th:field="*{id}"/>
-
-                <div class="mb-3">
-                    <label class="form-label" for="data">Data e Hora</label>
-                    <input type="datetime-local" class="form-control" id="data" name="data"
-                           th:value="${consulta?.data != null ? #temporals.format(consulta.data, 'yyyy-MM-dd''T''HH:mm') : ''}"
-                           th:classappend="${#fields.hasErrors('data')} ? 'is-invalid'"/>
-                    <div class="invalid-feedback" th:if="${#fields.hasErrors('data')}"
-                         th:errors="*{data}"></div>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label" for="valor">Valor</label>
-                    <input type="number" class="form-control" id="valor" step="0.01"
-                           th:field="*{valor}" th:errorclass="is-invalid"/>
-                    <div class="invalid-feedback" th:if="${#fields.hasErrors('valor')}"
-                         th:errors="*{valor}"></div>
-                </div>
-
-                <div class="mb-3">
-                    <label class="form-label" for="observacao">Observação</label>
-                    <input type="text" class="form-control" id="observacao"
-                           th:field="*{observacao}" th:errorclass="is-invalid"/>
-                    <div class="invalid-feedback" th:if="${#fields.hasErrors('observacao')}"
-                         th:errors="*{observacao}"></div>
-                </div>
-
-                <!-- Envia paciente.id: o Spring monta um Paciente só com o id,
-                     e o JPA grava a referência (FK) na tabela tb_consulta.
-                     Ao editar, o paciente atual vem pré-selecionado. -->
-                <div class="mb-3">
-                    <label class="form-label">Paciente</label>
-                    <select class="form-select" name="paciente.id"
-                            th:classappend="${#fields.hasErrors('paciente.id')} ? 'is-invalid'">
-                        <option th:each="p : ${pacientes}"
-                                th:value="${p.id}"
-                                th:text="${p.nome}"
-                                th:selected="${p.id == consulta?.paciente?.id}"></option>
-                    </select>
-                    <div class="invalid-feedback" th:if="${#fields.hasErrors('paciente.id')}"
-                         th:errors="*{paciente.id}"></div>
-                </div>
-
-                <!-- Envia medico.id: o Spring monta um Medico só com o id,
-                     e o JPA grava a referência (FK) na tabela tb_consulta. -->
-                <div class="mb-3">
-                    <label class="form-label">Médico</label>
-                    <select class="form-select" name="medico.id"
-                            th:classappend="${#fields.hasErrors('medico.id')} ? 'is-invalid'">
-                        <option th:each="m : ${medicos}"
-                                th:value="${m.id}"
-                                th:text="${m.nome}"
-                                th:selected="${m.id == consulta?.medico?.id}"></option>
-                    </select>
-                    <div class="invalid-feedback" th:if="${#fields.hasErrors('medico.id')}"
-                         th:errors="*{medico.id}"></div>
-                </div>
-
-                <button type="submit" class="btn btn-info text-white">Salvar</button>
-            </form>
-            <a th:href="@{/consulta/list}" class="btn btn-outline-secondary mt-2">Voltar para a lista</a>
+            </div>
         </div>
     </main>
 </html>

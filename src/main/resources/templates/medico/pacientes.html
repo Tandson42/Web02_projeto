@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::head}, ~{::main})}">
+
+    <head th:replace="~{fragments/head :: head(~{::title})}">
+        <title>Meus Pacientes - Clínica Web</title>
+    </head>
+
+    <main th:fragment="main">
+        <div class="container mt-4">
+            <div class="page-header">
+                <div>
+                    <h2 class="page-title">Meus Pacientes</h2>
+                    <p class="text-secondary mb-0" th:if="${medico != null}">Dr(a). <span th:text="${medico.nome}"></span> &mdash; Pacientes atendidos por você.</p>
+                </div>
+                <a th:href="@{/}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Voltar ao Menu
+                </a>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead>
+                    <tr>
+                        <th style="width: 70px;">Id</th>
+                        <th>Nome</th>
+                        <th>CPF</th>
+                        <th>Email</th>
+                        <th>Telefone</th>
+                        <th class="text-end" style="min-width: 140px;">Ações</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:if="${#lists.isEmpty(pacientes)}">
+                        <td colspan="6" class="text-center py-4 text-muted">Nenhum paciente vinculado aos seus atendimentos até o momento.</td>
+                    </tr>
+                    <tr th:each="p : ${pacientes}">
+                        <td class="text-muted fw-bold" th:text="${p.id}"></td>
+                        <td class="fw-semibold text-dark" th:text="${p.nome}"></td>
+                        <td th:text="${p.cpf}"></td>
+                        <td><a class="text-decoration-none text-muted" th:href="|mailto:${p.email}|" th:text="${p.email}"></a></td>
+                        <td th:text="${p.telefone}"></td>
+                        <td class="text-end">
+                            <a th:href="|/paciente/consultas/${p.id}|" class="btn btn-outline-info btn-sm">
+                                <i class="bi bi-calendar2-check"></i> Consultas
+                            </a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+</html>

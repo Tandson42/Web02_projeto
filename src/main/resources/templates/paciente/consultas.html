@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
       th:replace="~{fragments/layout :: layout(~{::head}, ~{::main})}">
 
     <head th:replace="~{fragments/head :: head(~{::title})}">
@@ -8,35 +9,56 @@
 
     <main th:fragment="main">
         <div class="container mt-4">
-            <!-- Exemplo de uso do método dados() do domínio -->
-            <p th:text="${paciente?.dados()}"></p>
-
-            <h3>Consultas de <span th:text="${paciente?.nome}"></span></h3>
-            <!-- Exemplo de uso do método consultas() do domínio (retorna String) -->
-            <pre th:text="${paciente?.consultas()}"></pre>
+            <div class="page-header">
+                <div>
+                    <h2 class="page-title">Consultas de <span th:text="${paciente?.nome}"></span></h2>
+                    <p class="text-secondary mb-0" th:text="${paciente?.dados()}"></p>
+                </div>
+            </div>
 
             <div class="table-responsive">
-                <table class="table table-striped">
+                <table class="table align-middle">
                     <thead>
                     <tr>
-                        <th>Id</th>
+                        <th style="width: 70px;">Id</th>
                         <th>Data</th>
                         <th>Valor</th>
                         <th>Observação</th>
                         <th>Médico</th>
                     </tr>
                     </thead>
-                    <tr th:each="c : ${consultas}">
-                        <td th:text="${c.id}"></td>
-                        <td th:text="${#temporals.format(c.data, 'dd/MM/yyyy HH:mm')}"></td>
-                        <td th:text="${c.valor}"></td>
-                        <td th:text="${c.observacao}"></td>
-                        <td th:text="${c.medico?.nome}"></td>
+                    <tbody>
+                    <tr th:if="${#lists.isEmpty(consultas)}">
+                        <td colspan="5" class="text-center py-4 text-muted">Nenhuma consulta cadastrada para este paciente.</td>
                     </tr>
+                    <tr th:each="c : ${consultas}">
+                        <td class="text-muted fw-bold" th:text="${c.id}"></td>
+                        <td class="fw-semibold text-dark">
+                            <i class="bi bi-calendar2-event me-1 text-info"></i>
+                            <span th:text="${#temporals.format(c.data, 'dd/MM/yyyy HH:mm')}"></span>
+                        </td>
+                        <td>
+                            <span class="badge bg-success bg-opacity-10 text-success fw-bold px-2 py-1"
+                                  th:text="${'R$ ' + #numbers.formatDecimal(c.valor, 1, 'POINT', 2, 'COMMA')}"></span>
+                        </td>
+                        <td class="text-secondary small" th:text="${c.observacao}"></td>
+                        <td>
+                            <i class="bi bi-person-badge me-1 text-secondary"></i>
+                            <span class="fw-semibold" th:text="${c.medico?.nome}"></span>
+                        </td>
+                    </tr>
+                    </tbody>
                 </table>
             </div>
 
-            <a th:href="@{/paciente/list}" class="btn btn-outline-secondary">Voltar para a lista de pacientes</a>
+            <div class="mt-4">
+                <a sec:authorize="hasAnyRole('SECRETARIO', 'ADMIN')" th:href="@{/paciente/list}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Voltar para a lista de pacientes
+                </a>
+                <a sec:authorize="!hasAnyRole('SECRETARIO', 'ADMIN')" th:href="@{/}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Voltar ao Menu
+                </a>
+            </div>
         </div>
     </main>
 </html>

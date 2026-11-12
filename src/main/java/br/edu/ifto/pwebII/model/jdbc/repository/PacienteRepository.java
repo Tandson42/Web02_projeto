@@ -55,4 +55,22 @@ public class PacienteRepository {
         query.setParameter("id", id);
         return query.getResultList();
     }
+
+    public Paciente porUsuario(String login) {
+        List<Paciente> list = em.createQuery(
+                "select p from Paciente p where lower(p.usuario.usuario) = lower(:login)", Paciente.class)
+                .setParameter("login", login)
+                .getResultList();
+        return list.isEmpty() ? null : list.get(0);
+    }
+
+    public List<Paciente> pacientesDoMedico(Long idMedico) {
+        if (idMedico == null) {
+            return List.of();
+        }
+        return em.createQuery(
+                "select distinct c.paciente from Consulta c where c.medico.id = :idMedico", Paciente.class)
+                .setParameter("idMedico", idMedico)
+                .getResultList();
+    }
 }

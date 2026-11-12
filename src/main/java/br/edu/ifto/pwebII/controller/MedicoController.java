@@ -2,9 +2,10 @@ package br.edu.ifto.pwebII.controller;
 
 import br.edu.ifto.pwebII.model.entity.Medico;
 import br.edu.ifto.pwebII.model.jdbc.repository.MedicoRepository;
+import br.edu.ifto.pwebII.service.UsuarioService;
+import br.edu.ifto.pwebII.validation.Cadastro;
 import br.edu.ifto.pwebII.validation.Edicao;
 import jakarta.transaction.Transactional;
-import jakarta.validation.Valid;
 import jakarta.validation.groups.Default;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
@@ -23,9 +24,11 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class MedicoController {
 
     private final MedicoRepository repository;
+    private final UsuarioService usuarioService;
 
-    public MedicoController(MedicoRepository repository) {
+    public MedicoController(MedicoRepository repository, UsuarioService usuarioService) {
         this.repository = repository;
+        this.usuarioService = usuarioService;
     }
 
     //carrega a página form.html do médico (cadastro novo)
@@ -44,9 +47,10 @@ public class MedicoController {
     //cadastra um novo médico
     @Transactional
     @PostMapping("save")
-    public ModelAndView save(@Valid @ModelAttribute("medico") Medico medico,
+    public ModelAndView save(@Validated({Default.class, Cadastro.class}) @ModelAttribute("medico") Medico medico,
                              BindingResult result,
                              RedirectAttributes attributes) {
+        usuarioService.criarCredenciais(medico, UsuarioService.PERFIL_MEDICO, result);
         if (result.hasErrors()) {
             return new ModelAndView("medico/form");
         }
@@ -69,6 +73,17 @@ public class MedicoController {
     public ModelAndView update(@Validated({Default.class, Edicao.class}) @ModelAttribute("medico") Medico medico,
                                BindingResult result,
                                RedirectAttributes attributes) {
+        if (result.hasErrors()) {
+            return new ModelAndView("medico/form");
+        }
+
+        Medico existente = repository.medico(medico.getId());
+        if (existente == null) {
+            result.reject("medico.naoEncontrado", "Médico não encontrado.");
+            return new ModelAndView("medico/form");
+        }
+
+        usuarioService.atualizarCredenciais(medico, existente, UsuarioService.PERFIL_MEDICO, result);
         if (result.hasErrors()) {
             return new ModelAndView("medico/form");
         }

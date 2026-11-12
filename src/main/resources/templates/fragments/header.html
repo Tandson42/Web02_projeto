@@ -1,36 +1,52 @@
 
 <header class="container" th:fragment="header" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-info">
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom">
         <div class="container-fluid">
-            <a class="navbar-brand" th:href="@{/}">Clínica Web</a>
+            <a class="navbar-brand" th:href="@{/}">
+                <i class="bi bi-heart-pulse-fill"></i> Clínica Web
+            </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item">
-                        <a class="nav-link" th:href="@{/}">Home</a>
+                        <a class="nav-link" th:href="@{/}"><i class="bi bi-house-door"></i> Home</a>
                     </li>
-                    <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+                    <!-- Secretário e Admin -->
+                    <li class="nav-item" sec:authorize="hasAnyRole('SECRETARIO', 'ADMIN')">
                         <a class="nav-link" th:href="@{/medico/list}">Médicos</a>
                     </li>
-                    <li class="nav-item">
+                    <li class="nav-item" sec:authorize="hasAnyRole('SECRETARIO', 'ADMIN')">
                         <a class="nav-link" th:href="@{/paciente/list}">Pacientes</a>
                     </li>
-                    <li class="nav-item">
+                    <li class="nav-item" sec:authorize="hasAnyRole('SECRETARIO', 'ADMIN')">
                         <a class="nav-link" th:href="@{/consulta/list}">Consultas</a>
+                    </li>
+                    <li class="nav-item" sec:authorize="hasAnyRole('SECRETARIO', 'ADMIN')">
+                        <a class="nav-link" th:href="@{/usuario/list}">Usuários</a>
+                    </li>
+                    <!-- Médico -->
+                    <li class="nav-item" sec:authorize="hasRole('MEDICO')">
+                        <a class="nav-link" th:href="@{/minhas-consultas-medico}">Minhas Consultas</a>
+                    </li>
+                    <!-- Paciente -->
+                    <li class="nav-item" sec:authorize="hasRole('PACIENTE')">
+                        <a class="nav-link" th:href="@{/minhas-consultas}">Minhas Consultas</a>
                     </li>
                 </ul>
 
-                <span class="navbar-text me-3" sec:authorize="isAuthenticated()">
-                    Olá, <strong sec:authentication="name">usuário</strong>
+                <span class="user-badge text-white me-3" sec:authorize="isAuthenticated()">
+                    <i class="bi bi-person-circle"></i> Olá, <strong sec:authentication="name">usuário</strong>
                 </span>
 
-                <a class="btn btn-outline-light me-2" sec:authorize="!isAuthenticated()" th:href="@{/login}">Entrar</a>
+                <a class="btn btn-outline-light me-2" sec:authorize="!isAuthenticated()" th:href="@{/login}">
+                    <i class="bi bi-box-arrow-in-right"></i> Entrar
+                </a>
 
                 <form class="d-flex" sec:authorize="isAuthenticated()" th:action="@{/logout}" method="post">
-                    <button type="submit" class="btn btn-outline-light">Sair</button>
+                    <button type="submit" class="btn btn-outline-light btn-sm"><i class="bi bi-box-arrow-right"></i> Sair</button>
                 </form>
             </div>
         </div>

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::head}, ~{::main})}">
+
+    <head th:replace="~{fragments/head :: head(~{::title})}">
+        <title>Usuários e Papéis</title>
+    </head>
+
+    <main th:fragment="main">
+        <div class="container mt-4">
+            <div class="alert alert-success shadow-sm d-flex align-items-center gap-2 mb-3" th:if="${mensagem != null}">
+                <i class="bi bi-check-circle-fill"></i>
+                <span th:text="${mensagem}"></span>
+            </div>
+            <div class="alert alert-danger shadow-sm d-flex align-items-center gap-2 mb-3" th:if="${erro != null}">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <span th:text="${erro}"></span>
+            </div>
+
+            <div class="page-header">
+                <div>
+                    <h2 class="page-title">Usuários e papéis</h2>
+                    <p class="text-secondary mb-0">Contas de acesso cadastradas e permissões de perfil do sistema.</p>
+                </div>
+                <a th:href="@{/}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Voltar ao menu
+                </a>
+            </div>
+
+            <div class="table-responsive">
+                <table class="table align-middle">
+                    <thead>
+                    <tr>
+                        <th style="width: 70px;">Id</th>
+                        <th>Usuário</th>
+                        <th>Papéis</th>
+                        <th class="text-end" style="min-width: 180px;">Ações</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="u : ${usuarios}">
+                        <td class="text-muted fw-bold" th:text="${u.id}"></td>
+                        <td class="fw-semibold text-dark">
+                            <i class="bi bi-person-circle text-secondary me-1"></i>
+                            <span th:text="${u.usuario}"></span>
+                        </td>
+                        <td>
+                            <span class="badge rounded-pill me-1"
+                                  th:each="perfil : ${u.perfis}"
+                                  th:classappend="${perfil.nome == 'ADMIN' ? 'bg-danger text-white' : (perfil.nome == 'SECRETARIO' ? 'bg-warning text-dark' : (perfil.nome == 'MEDICO' ? 'bg-info text-white' : 'bg-success text-white'))}"
+                                  th:text="${perfil.nome}"></span>
+                        </td>
+                        <td class="text-end">
+                            <a class="btn btn-outline-secondary btn-sm" th:href="@{/usuario/edit/{id}(id=${u.id})}">
+                                <i class="bi bi-shield-lock"></i> Editar papéis / senha
+                            </a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+</html>
