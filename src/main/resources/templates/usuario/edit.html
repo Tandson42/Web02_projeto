@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::head}, ~{::main})}">
+
+    <head th:replace="~{fragments/head :: head(~{::title})}">
+        <title>Editar Usuário</title>
+    </head>
+
+    <main th:fragment="main">
+        <div class="container mt-4">
+            <h3>Editar usuário</h3>
+
+            <form th:action="@{/usuario/update}" th:object="${usuarioForm}" method="post">
+                <div class="alert alert-danger" th:if="${#fields.hasAnyErrors()}">
+                    <div th:each="erro : ${#fields.detailedErrors()}">
+                        <span th:text="${erro.message}"></span>
+                    </div>
+                </div>
+
+                <input type="hidden" th:field="*{id}"/>
+
+                <div class="mb-3">
+                    <label class="form-label" for="usuario">Usuário</label>
+                    <input type="text" class="form-control" id="usuario"
+                           th:field="*{usuario}" th:errorclass="is-invalid"
+                           autocomplete="username"/>
+                    <div class="invalid-feedback" th:if="${#fields.hasErrors('usuario')}"
+                         th:errors="*{usuario}"></div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Papéis</label>
+                    <div class="border rounded p-3">
+                        <div class="form-check" th:each="perfil : ${perfis}">
+                            <input class="form-check-input" type="checkbox" name="perfis"
+                                   th:id="|perfil-${perfil.id}|"
+                                   th:value="${perfil.id}"
+                                   th:checked="${#lists.contains(usuarioForm.perfis, perfil.id)}"/>
+                            <label class="form-check-label" th:for="|perfil-${perfil.id}|"
+                                   th:text="${perfil.nome}">PERFIL</label>
+                        </div>
+                    </div>
+                    <div class="text-danger small mt-1" th:if="${#fields.hasErrors('perfis')}"
+                         th:errors="*{perfis}"></div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label" for="senha">Nova senha (deixe em branco para manter)</label>
+                    <input type="password" class="form-control" id="senha" name="senha"
+                           autocomplete="new-password"
+                           th:classappend="${#fields.hasErrors('senha')} ? 'is-invalid'"/>
+                    <div class="invalid-feedback" th:if="${#fields.hasErrors('senha')}"
+                         th:errors="*{senha}"></div>
+                    <div class="form-text">A senha deve ter no mínimo 6 caracteres.</div>
+                </div>
+
+                <button type="submit" class="btn btn-info text-white">Salvar</button>
+                <a th:href="@{/usuario/list}" class="btn btn-outline-secondary">Cancelar</a>
+            </form>
+        </div>
+    </main>
+</html>

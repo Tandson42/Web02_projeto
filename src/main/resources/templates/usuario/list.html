@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::head}, ~{::main})}">
+
+    <head th:replace="~{fragments/head :: head(~{::title})}">
+        <title>Usuários e Papéis</title>
+    </head>
+
+    <main th:fragment="main">
+        <div class="container mt-4">
+            <div class="alert alert-success" th:if="${mensagem != null}" th:text="${mensagem}"></div>
+            <div class="alert alert-danger" th:if="${erro != null}" th:text="${erro}"></div>
+
+            <h3>Usuários e papéis</h3>
+            <p class="text-muted">
+                Contas criadas no cadastro de pacientes e médicos. Altere os papéis para liberar
+                o acesso às funcionalidades administrativas.
+            </p>
+
+            <div class="table-responsive">
+                <table class="table table-striped align-middle">
+                    <thead>
+                    <tr>
+                        <th>Id</th>
+                        <th>Usuário</th>
+                        <th>Papéis</th>
+                        <th>Ações</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="u : ${usuarios}">
+                        <td th:text="${u.id}"></td>
+                        <td th:text="${u.usuario}"></td>
+                        <td>
+                            <span class="badge bg-info text-dark me-1"
+                                  th:each="perfil : ${u.perfis}"
+                                  th:text="${perfil.nome}"></span>
+                        </td>
+                        <td>
+                            <a th:href="@{/usuario/edit/{id}(id=${u.id})}">Editar papéis / senha</a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <a th:href="@{/}" class="btn btn-outline-secondary mt-2">Voltar ao menu</a>
+        </div>
+    </main>
+</html>
