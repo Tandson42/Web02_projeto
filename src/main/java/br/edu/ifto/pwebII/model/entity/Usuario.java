@@ -36,6 +36,9 @@ public class Usuario implements UserDetails, Serializable {
     @Column(nullable = false, length = 100)
     private String senha;
 
+    @Column(nullable = false)
+    private boolean ativo = true;
+
     // EAGER para que as autoridades estejam disponíveis durante a autenticação.
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(name = "usuario_perfil",
@@ -78,7 +81,15 @@ public class Usuario implements UserDetails, Serializable {
 
     @Override
     public boolean isEnabled() {
-        return true;
+        return ativo;
+    }
+
+    public boolean isAtivo() {
+        return ativo;
+    }
+
+    public void setAtivo(boolean ativo) {
+        this.ativo = ativo;
     }
 
     public boolean possuiPerfil(Long idPerfil) {

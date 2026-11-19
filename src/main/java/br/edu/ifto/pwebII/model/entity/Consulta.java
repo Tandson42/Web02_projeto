@@ -61,6 +61,13 @@ public class Consulta implements Serializable {
     @OnDelete(action = OnDeleteAction.CASCADE)
     private Medico medico;
 
+    // Vínculo com o agendamento que originou a consulta após confirmação de presença.
+    // Opcional no banco para manter compatibilidade com consultas registradas anteriormente.
+    @OneToOne
+    @JoinColumn(name = "agendamento_id", unique = true)
+    @OnDelete(action = OnDeleteAction.SET_NULL)
+    private Agendamento agendamento;
+
 
     public String dados() {
         DateTimeFormatter fmt = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
@@ -117,5 +124,13 @@ public class Consulta implements Serializable {
 
     public void setMedico(Medico medico) {
         this.medico = medico;
+    }
+
+    public Agendamento getAgendamento() {
+        return agendamento;
+    }
+
+    public void setAgendamento(Agendamento agendamento) {
+        this.agendamento = agendamento;
     }
 }
