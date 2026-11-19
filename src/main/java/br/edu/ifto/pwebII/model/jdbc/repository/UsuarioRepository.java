@@ -75,4 +75,12 @@ public class UsuarioRepository {
                         "select count(distinct u) from Usuario u join u.perfis p where p.nome in ('SECRETARIO', 'ADMIN')", Long.class)
                 .getSingleResult();
     }
+
+    public List<Usuario> usuariosPorPerfil(String nomePerfil) {
+        return em.createQuery(
+                        "select distinct u from Usuario u join u.perfis p where upper(p.nome) = upper(:nome) order by u.usuario",
+                        Usuario.class)
+                .setParameter("nome", nomePerfil)
+                .getResultList();
+    }
 }

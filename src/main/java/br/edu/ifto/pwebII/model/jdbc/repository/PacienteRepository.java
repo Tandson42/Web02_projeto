@@ -51,9 +51,15 @@ public class PacienteRepository {
      * @return lista de consultas do paciente
      */
     public List<Consulta> consultasDoPaciente(Long id) {
-        Query query = em.createQuery("from Consulta c where c.paciente.id = :id");
-        query.setParameter("id", id);
-        return query.getResultList();
+        return em.createQuery(
+                        "select c from Consulta c " +
+                                "join fetch c.medico " +
+                                "left join fetch c.agendamento " +
+                                "where c.paciente.id = :id " +
+                                "order by c.data desc",
+                        Consulta.class)
+                .setParameter("id", id)
+                .getResultList();
     }
 
     public Paciente porUsuario(String login) {
