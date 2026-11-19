@@ -27,8 +27,13 @@ public class ConsultaRepository {
     }
 
     public List<Consulta> consultas() {
-        Query query = em.createQuery("from Consulta"); //HQL
-        return query.getResultList();
+        return em.createQuery(
+                "select c from Consulta c " +
+                        "join fetch c.paciente " +
+                        "join fetch c.medico " +
+                        "left join fetch c.agendamento " +
+                        "order by c.data desc",
+                Consulta.class).getResultList();
     }
 
     public void remove(Long id) {

@@ -127,7 +127,7 @@ public class UsuarioService {
     @Transactional
     public void atualizarConta(UsuarioForm formulario, Usuario usuario,
                                Long idAdministradorLogado, BindingResult result) {
-        validarLoginUnico(formulario.getUsuario(), usuario.getId(), result);
+        validarLoginUnico(formulario.getUsuario(), usuario.getId(), "usuario", result);
         validarSenhaOpcional(formulario.getSenha(), result);
         if (result.hasErrors()) {
             return;
@@ -191,19 +191,23 @@ public class UsuarioService {
     }
 
     private void validarLoginUnico(String login, Long idUsuarioAtual, BindingResult result) {
+        validarLoginUnico(login, idUsuarioAtual, "login", result);
+    }
+
+    private void validarLoginUnico(String login, Long idUsuarioAtual, String campo, BindingResult result) {
         if (login == null || login.isBlank()) {
-            result.rejectValue("login", "login.obrigatorio", "Informe o nome de usuário.");
+            result.rejectValue(campo, "login.obrigatorio", "Informe o nome de usuário.");
             return;
         }
 
         String valor = login.trim();
         if (valor.length() < 3 || valor.length() > 50) {
-            result.rejectValue("login", "login.tamanho",
+            result.rejectValue(campo, "login.tamanho",
                     "O nome de usuário deve ter entre 3 e 50 caracteres.");
             return;
         }
         if (!valor.matches("[A-Za-z0-9._-]+")) {
-            result.rejectValue("login", "login.formato",
+            result.rejectValue(campo, "login.formato",
                     "O nome de usuário deve conter apenas letras, números, ponto, hífen ou sublinhado.");
             return;
         }
@@ -213,7 +217,7 @@ public class UsuarioService {
                 : usuarioRepository.existeOutroUsuario(valor, idUsuarioAtual);
 
         if (duplicado) {
-            result.rejectValue("login", "login.duplicado", "Este nome de usuário já está em uso.");
+            result.rejectValue(campo, "login.duplicado", "Este nome de usuário já está em uso.");
         }
     }
 

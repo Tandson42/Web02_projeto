@@ -51,9 +51,8 @@ body {
 }
 
 .navbar-custom .nav-link:hover {
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.16);
     color: #ffffff !important;
-    transform: translateY(-1px);
 }
 
 .user-badge {
@@ -74,12 +73,6 @@ body {
     border-radius: var(--radius-lg);
     background-color: var(--card-bg);
     box-shadow: var(--shadow-card);
-    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.card:hover {
-    box-shadow: var(--shadow-hover);
-    transform: translateY(-3px);
 }
 
 .card-header {
@@ -135,8 +128,7 @@ body {
 
 .btn-info:hover, .btn-info:focus {
     background: linear-gradient(135deg, #0e7490 0%, #0891b2 100%);
-    box-shadow: 0 4px 12px rgba(14, 116, 144, 0.35);
-    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(14, 116, 144, 0.3);
 }
 
 .btn-outline-light:hover {
@@ -173,10 +165,6 @@ body {
     vertical-align: middle;
     font-size: 0.925rem;
     border-bottom: 1px solid #f1f5f9;
-}
-
-.table tbody tr:hover {
-    background-color: #f8fafc;
 }
 
 /* Forms */

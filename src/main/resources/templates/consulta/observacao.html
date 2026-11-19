@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::head}, ~{::main})}">
+
+    <head th:replace="~{fragments/head :: head(~{::title})}">
+        <title>Observações da Consulta</title>
+    </head>
+
+    <main th:fragment="main">
+        <div class="container mt-4 mb-5">
+            <div class="row justify-content-center">
+                <div class="col-lg-7 col-md-9">
+                    <div class="alert alert-danger shadow-sm d-flex align-items-center gap-2 mb-3" th:if="${erro != null}">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <span th:text="${erro}"></span>
+                    </div>
+
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-white py-3 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                            <h3 class="h5 mb-0 fw-bold">
+                                <i class="bi bi-journal-medical text-info me-2"></i>
+                                Observações da Consulta #<span th:text="${consulta.id}"></span>
+                            </h3>
+                            <div class="d-flex align-items-center gap-2">
+                                <span th:if="${!podeEditar}" class="badge bg-secondary bg-opacity-10 text-secondary px-2 py-1">
+                                    <i class="bi bi-eye me-1"></i> Somente leitura
+                                </span>
+                                <a th:href="@{/agenda/list}" class="btn btn-outline-secondary btn-sm">
+                                    <i class="bi bi-arrow-left"></i> Voltar à Agenda
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="card-body p-4">
+                            <!-- Resumo da consulta -->
+                            <div class="p-3 rounded bg-light border mb-4">
+                                <div class="row g-2 small">
+                                    <div class="col-sm-6">
+                                        <i class="bi bi-person-heart text-success me-1"></i>
+                                        <strong>Paciente:</strong>
+                                        <span th:text="${consulta.paciente?.nome}"></span>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <i class="bi bi-person-badge text-info me-1"></i>
+                                        <strong>Médico:</strong>
+                                        <span th:text="${consulta.medico?.nome}"></span>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <i class="bi bi-calendar-event text-info me-1"></i>
+                                        <strong>Data e Horário:</strong>
+                                        <span th:text="${#temporals.format(consulta.data, 'dd/MM/yyyy HH:mm')}"></span>
+                                    </div>
+                                    <div class="col-sm-6">
+                                        <i class="bi bi-cash-coin text-success me-1"></i>
+                                        <strong>Valor:</strong>
+                                        <span th:text="${'R$ ' + #numbers.formatDecimal(consulta.valor, 1, 'POINT', 2, 'COMMA')}"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Edição: exclusiva do Médico responsável -->
+                            <form th:if="${podeEditar}" th:action="@{/consulta/observacao/{id}(id=${consulta.id})}" method="post">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold" for="observacao">
+                                        Observações Clínicas / Anotações do Médico
+                                    </label>
+                                    <textarea class="form-control" id="observacao" name="observacao" rows="6"
+                                              maxlength="500"
+                                              placeholder="Registre aqui as observações, orientações ou resumo da consulta..."
+                                              th:text="${consulta.observacao}"></textarea>
+                                    <div class="form-text text-muted small">
+                                        Máximo de 500 caracteres. Seus secretários associados poderão visualizar estas observações, mas não alterá-las.
+                                    </div>
+                                </div>
+
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-info text-white">
+                                        <i class="bi bi-check2-circle"></i> Salvar Observações
+                                    </button>
+                                    <a th:href="@{/agenda/list}" class="btn btn-outline-secondary">Cancelar</a>
+                                </div>
+                            </form>
+
+                            <!-- Visualização: Secretário associado ou Admin (somente leitura) -->
+                            <div th:if="${!podeEditar}">
+                                <label class="form-label fw-semibold">Observações registradas pelo médico</label>
+                                <div class="p-3 rounded bg-light border text-dark" style="min-height: 120px; white-space: pre-line;"
+                                     th:text="${consulta.observacao != null and !#strings.isEmpty(consulta.observacao) ? consulta.observacao : 'Nenhuma observação registrada pelo médico até o momento.'}">
+                                </div>
+                                <div class="alert alert-light border small text-muted mt-3 mb-0">
+                                    <i class="bi bi-lock-fill me-1"></i>
+                                    Somente o médico responsável pela consulta pode adicionar ou alterar observações.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</html>

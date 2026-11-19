@@ -2,7 +2,9 @@ package br.edu.ifto.pwebII.model.entity;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.PositiveOrZero;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -24,12 +26,20 @@ public class Medico extends PessoaFisica implements Serializable {
     @Pattern(regexp = "(CRM-)?[0-9]{4,6}", message = "O CRM deve conter de 4 a 6 dígitos, com o prefixo CRM- opcional.")
     private String crm;
 
+    @NotNull(message = "Informe o valor da consulta.")
+    @PositiveOrZero(message = "O valor da consulta deve ser maior ou igual a zero.")
+    @Column(name = "valor_consulta", nullable = false)
+    private Double valorConsulta = 0.0;
+
     // Lado fraco (não dono) do relacionamento 0..* -> 1
     // O mappedBy indica que a FK está no atributo "medico" de Consulta.
     // cascade=REMOVE + orphanRemoval: ao excluir o médico, o JPA também
     // exclui as consultas associadas (evita violação de FK).
     @OneToMany(mappedBy = "medico", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Consulta> consultas = new ArrayList<>();
+
+    @OneToMany(mappedBy = "medico", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<Agenda> agendas = new ArrayList<>();
 
     /**
      * Retorna uma String com a representação textual (dados básicos) do médico.
@@ -66,11 +76,27 @@ public class Medico extends PessoaFisica implements Serializable {
         this.crm = crm;
     }
 
+    public Double getValorConsulta() {
+        return valorConsulta;
+    }
+
+    public void setValorConsulta(Double valorConsulta) {
+        this.valorConsulta = valorConsulta;
+    }
+
     public List<Consulta> getConsultas() {
         return consultas;
     }
 
     public void setConsultas(List<Consulta> consultas) {
         this.consultas = consultas;
+    }
+
+    public List<Agenda> getAgendas() {
+        return agendas;
+    }
+
+    public void setAgendas(List<Agenda> agendas) {
+        this.agendas = agendas;
     }
 }

@@ -17,13 +17,13 @@ INSERT INTO perfil (nome) VALUES ('PACIENTE');
 INSERT INTO perfil (nome) VALUES ('MEDICO');
 INSERT INTO perfil (nome) VALUES ('USER');
 
-INSERT INTO usuario (usuario, senha) VALUES ('admin', '$2a$10$bNNAqeWsFoLwIRaghWNWrO5vKCq648XRbRMxrlY29pP.hVRvttLEq');
-INSERT INTO usuario (usuario, senha) VALUES ('user', '$2a$10$dj.LiJmM71c21rsaJzWrfurcSJArX8wY9KYW4smnC1jqi88EZuPrW');
-INSERT INTO usuario (usuario, senha) VALUES ('joao', '$2a$10$dj.LiJmM71c21rsaJzWrfurcSJArX8wY9KYW4smnC1jqi88EZuPrW');
-INSERT INTO usuario (usuario, senha) VALUES ('carlos', '$2a$10$dj.LiJmM71c21rsaJzWrfurcSJArX8wY9KYW4smnC1jqi88EZuPrW');
-INSERT INTO usuario (usuario, senha) VALUES ('ana', '$2a$10$dj.LiJmM71c21rsaJzWrfurcSJArX8wY9KYW4smnC1jqi88EZuPrW');
-INSERT INTO usuario (usuario, senha) VALUES ('clinica', '$2a$10$dj.LiJmM71c21rsaJzWrfurcSJArX8wY9KYW4smnC1jqi88EZuPrW');
-INSERT INTO usuario (usuario, senha) VALUES ('secretario', '$2a$10$dj.LiJmM71c21rsaJzWrfurcSJArX8wY9KYW4smnC1jqi88EZuPrW');
+INSERT INTO usuario (usuario, senha, ativo) VALUES ('admin', '$2a$10$bNNAqeWsFoLwIRaghWNWrO5vKCq648XRbRMxrlY29pP.hVRvttLEq', TRUE);
+INSERT INTO usuario (usuario, senha, ativo) VALUES ('user', '$2a$10$dj.LiJmM71c21rsaJzWrfurcSJArX8wY9KYW4smnC1jqi88EZuPrW', TRUE);
+INSERT INTO usuario (usuario, senha, ativo) VALUES ('joao', '$2a$10$dj.LiJmM71c21rsaJzWrfurcSJArX8wY9KYW4smnC1jqi88EZuPrW', TRUE);
+INSERT INTO usuario (usuario, senha, ativo) VALUES ('carlos', '$2a$10$dj.LiJmM71c21rsaJzWrfurcSJArX8wY9KYW4smnC1jqi88EZuPrW', TRUE);
+INSERT INTO usuario (usuario, senha, ativo) VALUES ('ana', '$2a$10$dj.LiJmM71c21rsaJzWrfurcSJArX8wY9KYW4smnC1jqi88EZuPrW', TRUE);
+INSERT INTO usuario (usuario, senha, ativo) VALUES ('clinica', '$2a$10$dj.LiJmM71c21rsaJzWrfurcSJArX8wY9KYW4smnC1jqi88EZuPrW', TRUE);
+INSERT INTO usuario (usuario, senha, ativo) VALUES ('secretario', '$2a$10$dj.LiJmM71c21rsaJzWrfurcSJArX8wY9KYW4smnC1jqi88EZuPrW', TRUE);
 
 -- Perfis associados:
 -- admin: ADMIN (1) e SECRETARIO (2)
@@ -62,12 +62,12 @@ INSERT INTO paciente (id_pessoa_fisica) VALUES (2);
 -- Medico 1: Dr. Carlos Lima (Pessoa -> PessoaFisica -> Medico) => id 3
 INSERT INTO pessoa (email, telefone) VALUES ('carlos@email.com', '(63) 99711-5566');
 INSERT INTO pessoa_fisica (id_pessoa, nome, cpf) VALUES (3, 'Dr. Carlos Lima', '111.222.333-44');
-INSERT INTO medico (id_pessoa_fisica, crm) VALUES (3, 'CRM-12345');
+INSERT INTO medico (id_pessoa_fisica, crm, valor_consulta) VALUES (3, 'CRM-12345', 250.00);
 
 -- Medico 2: Dra. Ana Costa (Pessoa -> PessoaFisica -> Medico) => id 4
 INSERT INTO pessoa (email, telefone) VALUES ('ana@email.com', '(63) 99622-7788');
 INSERT INTO pessoa_fisica (id_pessoa, nome, cpf) VALUES (4, 'Dra. Ana Costa', '555.666.777-88');
-INSERT INTO medico (id_pessoa_fisica, crm) VALUES (4, 'CRM-54321');
+INSERT INTO medico (id_pessoa_fisica, crm, valor_consulta) VALUES (4, 'CRM-54321', 350.00);
 
 -- PessoaJuridica: empresa que testa o outro ramo da herança (Pessoa -> PessoaJuridica) => id 5
 INSERT INTO pessoa (email, telefone) VALUES ('contato@clinicasaude.com', '(63) 3211-0000');
@@ -81,6 +81,22 @@ UPDATE pessoa SET id_usuario = 5 WHERE id = 4;
 UPDATE pessoa SET id_usuario = 6 WHERE id = 5;
 
 -- Consultas (id auto; paciente_id/medico_id apontam para os ids cadastrados acima)
-insert into consulta (data, valor, observacao, paciente_id, medico_id) values (TIMESTAMP '2026-09-01 09:00:00', 250.00, 'Retorno de exame', 1, 3);
-insert into consulta (data, valor, observacao, paciente_id, medico_id) values (TIMESTAMP '2026-09-02 14:30:00', 350.00, 'Primeira consulta', 1, 4);
-insert into consulta (data, valor, observacao, paciente_id, medico_id) values (TIMESTAMP '2026-09-03 10:15:00', 150.00, 'Consulta de rotina', 2, 4);
+insert into consulta (data, valor, observacao, paciente_id, medico_id) values (TIMESTAMP '2026-11-16 09:00:00', 250.00, 'Retorno de exame', 1, 3);
+insert into consulta (data, valor, observacao, paciente_id, medico_id) values (TIMESTAMP '2026-11-17 14:30:00', 350.00, 'Primeira consulta', 1, 4);
+insert into consulta (data, valor, observacao, paciente_id, medico_id) values (TIMESTAMP '2026-11-18 10:15:00', 250.00, 'Consulta de rotina', 2, 3);
+
+-- Agenda de horários disponíveis dos médicos (medico_id: 3 = Dr. Carlos, 4 = Dra. Ana)
+INSERT INTO agenda (medico_id, data, horario, status, version) VALUES (3, DATE '2026-11-20', TIME '08:00:00', 'DISPONIVEL', 0);
+INSERT INTO agenda (medico_id, data, horario, status, version) VALUES (3, DATE '2026-11-20', TIME '09:30:00', 'DISPONIVEL', 0);
+INSERT INTO agenda (medico_id, data, horario, status, version) VALUES (4, DATE '2026-11-21', TIME '14:00:00', 'DISPONIVEL', 0);
+INSERT INTO agenda (medico_id, data, horario, status, version) VALUES (4, DATE '2026-11-23', TIME '10:30:00', 'DISPONIVEL', 0);
+INSERT INTO agenda (medico_id, data, horario, status, version) VALUES (3, DATE '2026-11-22', TIME '11:00:00', 'AGENDADO', 0);
+INSERT INTO agenda (medico_id, data, horario, status, version) VALUES (3, DATE '2026-11-25', TIME '15:00:00', 'DISPONIVEL', 0);
+
+-- Agendamento de demonstração aguardando confirmação de presença (Maria Silva com Dr. Carlos)
+INSERT INTO agendamento (agenda_id, paciente_id, status, valor, data_agendamento) VALUES (5, 1, 'AGENDADO', 250.00, TIMESTAMP '2026-11-18 10:00:00');
+
+-- Secretários associados aos médicos (secretario=7, clinica=6; Dr. Carlos=3, Dra. Ana=4)
+INSERT INTO medico_secretario (medico_id, secretario_id, pode_alterar_agenda, pode_alterar_preco) VALUES (3, 7, TRUE, FALSE);
+INSERT INTO medico_secretario (medico_id, secretario_id, pode_alterar_agenda, pode_alterar_preco) VALUES (3, 6, FALSE, FALSE);
+INSERT INTO medico_secretario (medico_id, secretario_id, pode_alterar_agenda, pode_alterar_preco) VALUES (4, 7, FALSE, TRUE);

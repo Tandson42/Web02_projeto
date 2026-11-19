@@ -1,64 +1,303 @@
 <!DOCTYPE html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
       th:replace="~{fragments/layout :: layout(~{::head}, ~{::main})}">
 
     <head th:replace="~{fragments/head :: head(~{::title})}">
-        <title>Consultas do Paciente</title>
+        <title>Minha Agenda</title>
     </head>
 
     <main th:fragment="main">
-        <div class="container mt-4">
-            <div class="page-header">
+        <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+        <style>
+            .calendar-shell {
+                background: #ffffff;
+                border-radius: 16px;
+                border: 1px solid #e2e8f0;
+                box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
+                padding: 1.25rem;
+            }
+            .fc {
+                font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+                --fc-border-color: #edf2f7;
+                --fc-today-bg-color: rgba(14, 165, 233, 0.07);
+                --fc-button-bg-color: #ffffff;
+                --fc-button-border-color: #cbd5e1;
+                --fc-button-text-color: #334155;
+                --fc-button-hover-bg-color: #f1f5f9;
+                --fc-button-hover-border-color: #94a3b8;
+                --fc-button-active-bg-color: #0284c7;
+                --fc-button-active-border-color: #0284c7;
+                --fc-button-active-text-color: #ffffff;
+            }
+            .fc .fc-toolbar-title {
+                font-size: 1.25rem;
+                font-weight: 700;
+                color: #0f172a;
+                text-transform: capitalize;
+            }
+            .fc .fc-button {
+                border-radius: 8px !important;
+                font-weight: 600;
+                font-size: 0.85rem;
+                padding: 0.4rem 0.8rem;
+                box-shadow: none !important;
+                text-transform: capitalize;
+            }
+            .fc .fc-button-group > .fc-button {
+                border-radius: 0 !important;
+            }
+            .fc .fc-button-group > .fc-button:first-child {
+                border-top-left-radius: 8px !important;
+                border-bottom-left-radius: 8px !important;
+            }
+            .fc .fc-button-group > .fc-button:last-child {
+                border-top-right-radius: 8px !important;
+                border-bottom-right-radius: 8px !important;
+            }
+            .fc .fc-col-header-cell-cushion {
+                color: #64748b;
+                font-weight: 600;
+                font-size: 0.8rem;
+                text-transform: uppercase;
+                letter-spacing: 0.04em;
+                text-decoration: none;
+                padding: 8px 4px;
+            }
+            .fc .fc-daygrid-day-number {
+                color: #334155;
+                font-weight: 600;
+                font-size: 0.85rem;
+                text-decoration: none;
+                padding: 6px 8px;
+            }
+            .fc .fc-day-today .fc-daygrid-day-number {
+                background: #0284c7;
+                color: #ffffff;
+                border-radius: 999px;
+                width: 28px;
+                height: 28px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                margin: 4px;
+            }
+            .fc-event {
+                border-radius: 6px !important;
+                padding: 2px 6px !important;
+                font-size: 0.78rem !important;
+                font-weight: 600 !important;
+                cursor: pointer;
+                transition: filter 0.12s ease;
+            }
+            .fc-event:hover {
+                filter: brightness(0.92);
+            }
+            .legend-dot {
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                display: inline-block;
+            }
+        </style>
+
+        <div class="container mt-4 mb-5">
+            <div class="alert alert-success shadow-sm d-flex align-items-center gap-2 mb-3" th:if="${mensagem != null}">
+                <i class="bi bi-check-circle-fill"></i>
+                <span th:text="${mensagem}"></span>
+            </div>
+            <div class="alert alert-danger shadow-sm d-flex align-items-center gap-2 mb-3" th:if="${erro != null}">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <span th:text="${erro}"></span>
+            </div>
+
+            <div class="page-header mb-3">
                 <div>
-                    <h2 class="page-title">Consultas de <span th:text="${paciente?.nome}"></span></h2>
-                    <p class="text-secondary mb-0" th:text="${paciente?.dados()}"></p>
+                    <h2 class="page-title mb-1">
+                        <i class="bi bi-calendar-heart text-info me-2"></i>Minha Agenda
+                    </h2>
+                    <p class="text-secondary mb-0" th:if="${paciente != null}">
+                        Consultas agendadas e histórico de consultas realizadas de <strong th:text="${paciente.nome}"></strong>.
+                    </p>
+                </div>
+                <a th:href="@{/agenda/disponiveis}" class="btn btn-info text-white">
+                    <i class="bi bi-calendar-plus"></i> Agendar Consulta
+                </a>
+            </div>
+
+            <!-- Legenda + Abas (Agenda das suas consultas | Histórico de Consultas Realizadas) -->
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                <div class="d-flex align-items-center gap-3 flex-wrap small text-secondary">
+                    <span class="d-inline-flex align-items-center gap-1">
+                        <span class="legend-dot" style="background: #f59e0b;"></span> Agendada
+                    </span>
+                    <span class="d-inline-flex align-items-center gap-1">
+                        <span class="legend-dot" style="background: #0284c7;"></span> Consulta Realizada
+                    </span>
+                </div>
+
+                <ul class="nav nav-pills nav-sm gap-1" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active py-1 px-3 small fw-semibold"
+                                data-bs-toggle="pill" data-bs-target="#pane-pac-calendario" type="button" role="tab">
+                            <i class="bi bi-calendar3 me-1"></i> Agenda
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link py-1 px-3 small fw-semibold"
+                                data-bs-toggle="pill" data-bs-target="#pane-pac-historico" type="button" role="tab">
+                            <i class="bi bi-clock-history me-1"></i> Histórico de Consultas
+                            <span class="badge bg-info bg-opacity-25 text-dark ms-1"
+                                  th:text="${#lists.size(consultas)}">0</span>
+                        </button>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="tab-content">
+                <!-- Aba 1: Calendário pessoal do paciente -->
+                <div class="tab-pane fade show active" id="pane-pac-calendario" role="tabpanel">
+                    <div class="calendar-shell">
+                        <div id="calendarPaciente"></div>
+                    </div>
+                </div>
+
+                <!-- Aba 2: Histórico apenas das consultas realizadas -->
+                <div class="tab-pane fade" id="pane-pac-historico" role="tabpanel">
+                    <div class="table-responsive">
+                        <table class="table align-middle">
+                            <thead>
+                            <tr>
+                                <th>Data e Horário</th>
+                                <th>Médico</th>
+                                <th>Valor</th>
+                                <th>Observação</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:if="${#lists.isEmpty(consultas)}">
+                                <td colspan="4" class="text-center py-4 text-muted">
+                                    Você ainda não possui consultas realizadas registradas.
+                                </td>
+                            </tr>
+                            <tr th:each="c : ${consultas}">
+                                <td class="fw-semibold text-dark">
+                                    <i class="bi bi-calendar-check me-1 text-info"></i>
+                                    <span th:text="${#temporals.format(c.data, 'dd/MM/yyyy HH:mm')}"></span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border" th:text="${c.medico?.nome}"></span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-success bg-opacity-10 text-success fw-bold px-2 py-1"
+                                          th:text="${'R$ ' + #numbers.formatDecimal(c.valor, 1, 'POINT', 2, 'COMMA')}"></span>
+                                </td>
+                                <td class="text-secondary small"
+                                    th:text="${c.observacao != null and !#strings.isEmpty(c.observacao) ? c.observacao : '—'}"></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
+        </div>
 
-            <div class="table-responsive">
-                <table class="table align-middle">
-                    <thead>
-                    <tr>
-                        <th style="width: 70px;">Id</th>
-                        <th>Data</th>
-                        <th>Valor</th>
-                        <th>Observação</th>
-                        <th>Médico</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr th:if="${#lists.isEmpty(consultas)}">
-                        <td colspan="5" class="text-center py-4 text-muted">Nenhuma consulta cadastrada para este paciente.</td>
-                    </tr>
-                    <tr th:each="c : ${consultas}">
-                        <td class="text-muted fw-bold" th:text="${c.id}"></td>
-                        <td class="fw-semibold text-dark">
-                            <i class="bi bi-calendar2-event me-1 text-info"></i>
-                            <span th:text="${#temporals.format(c.data, 'dd/MM/yyyy HH:mm')}"></span>
-                        </td>
-                        <td>
-                            <span class="badge bg-success bg-opacity-10 text-success fw-bold px-2 py-1"
-                                  th:text="${'R$ ' + #numbers.formatDecimal(c.valor, 1, 'POINT', 2, 'COMMA')}"></span>
-                        </td>
-                        <td class="text-secondary small" th:text="${c.observacao}"></td>
-                        <td>
-                            <i class="bi bi-person-badge me-1 text-secondary"></i>
-                            <span class="fw-semibold" th:text="${c.medico?.nome}"></span>
-                        </td>
-                    </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="mt-4">
-                <a sec:authorize="hasAnyRole('SECRETARIO', 'ADMIN')" th:href="@{/paciente/list}" class="btn btn-outline-secondary">
-                    <i class="bi bi-arrow-left"></i> Voltar para a lista de pacientes
-                </a>
-                <a sec:authorize="!hasAnyRole('SECRETARIO', 'ADMIN')" th:href="@{/}" class="btn btn-outline-secondary">
-                    <i class="bi bi-arrow-left"></i> Voltar ao Menu
-                </a>
+        <!-- Modal de detalhes da consulta / agendamento do paciente -->
+        <div class="modal fade" id="modalDetalhePaciente" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow">
+                    <div class="modal-header border-bottom">
+                        <h5 class="modal-title fw-bold" id="pacDetalheTitulo">Detalhes da Consulta</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <span id="pacDetalheBadge" class="badge px-3 py-2"></span>
+                        </div>
+                        <div class="d-flex flex-column gap-2 small">
+                            <div><i class="bi bi-calendar-event text-info me-2"></i><strong>Data e Horário:</strong> <span id="pacDetalheData"></span></div>
+                            <div><i class="bi bi-person-badge text-info me-2"></i><strong>Médico:</strong> <span id="pacDetalheMedico"></span></div>
+                            <div><i class="bi bi-cash-coin text-success me-2"></i><strong>Valor:</strong> <span id="pacDetalheValor"></span></div>
+                            <div id="pacLinhaObs" class="d-none"><i class="bi bi-card-text text-secondary me-2"></i><strong>Observação:</strong> <span id="pacDetalheObs"></span></div>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-top d-flex justify-content-between">
+                        <div id="pacDetalheAcoes"></div>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Fechar</button>
+                    </div>
+                </div>
             </div>
         </div>
+
+        <form id="formCancelarPaciente" method="post" th:action="@{/agendamento/cancelar/0}" class="d-none"></form>
+
+        <script th:inline="javascript">
+            document.addEventListener('DOMContentLoaded', function () {
+                const calendarEl = document.getElementById('calendarPaciente');
+                const modalDetalhes = new bootstrap.Modal(document.getElementById('modalDetalhePaciente'));
+
+                const fmtMoeda = (v) => v == null ? 'R$ 0,00' : Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                const fmtDataHora = (d) => d ? d.toLocaleDateString('pt-BR') + ' às ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '';
+
+                const calendar = new FullCalendar.Calendar(calendarEl, {
+                    locale: 'pt-br',
+                    initialView: 'dayGridMonth',
+                    height: 'auto',
+                    nowIndicator: true,
+                    dayMaxEvents: 4,
+                    slotMinTime: '07:00:00',
+                    slotMaxTime: '20:00:00',
+                    allDaySlot: false,
+                    buttonText: { today: 'Hoje', month: 'Mês', week: 'Semana', day: 'Dia', list: 'Lista' },
+                    headerToolbar: {
+                        left: 'prev,next today',
+                        center: 'title',
+                        right: 'dayGridMonth,timeGridWeek,listWeek'
+                    },
+                    events: /*[[@{/minhas-consultas/eventos}]]*/ '/minhas-consultas/eventos',
+                    eventClick: function (info) {
+                        const p = info.event.extendedProps;
+                        document.getElementById('pacDetalheTitulo').textContent = info.event.title;
+                        document.getElementById('pacDetalheData').textContent = fmtDataHora(info.event.start);
+                        document.getElementById('pacDetalheMedico').textContent = p.medico + (p.crm ? ' (' + p.crm + ')' : '');
+                        document.getElementById('pacDetalheValor').textContent = fmtMoeda(p.valor);
+
+                        const badge = document.getElementById('pacDetalheBadge');
+                        badge.textContent = p.statusLabel;
+                        badge.className = p.tipo === 'AGENDADO'
+                            ? 'badge bg-warning bg-opacity-25 text-dark px-3 py-2'
+                            : 'badge bg-info bg-opacity-10 text-info px-3 py-2';
+
+                        const linhaObs = document.getElementById('pacLinhaObs');
+                        if (p.observacao) {
+                            document.getElementById('pacDetalheObs').textContent = p.observacao;
+                            linhaObs.classList.remove('d-none');
+                        } else {
+                            linhaObs.classList.add('d-none');
+                        }
+
+                        const acoesEl = document.getElementById('pacDetalheAcoes');
+                        acoesEl.innerHTML = '';
+                        if (p.tipo === 'AGENDADO') {
+                            const btnCanc = document.createElement('button');
+                            btnCanc.type = 'button';
+                            btnCanc.className = 'btn btn-outline-danger btn-sm';
+                            btnCanc.innerHTML = '<i class="bi bi-x-circle me-1"></i>Cancelar Agendamento';
+                            btnCanc.onclick = function () {
+                                if (window.confirm('Deseja cancelar este agendamento?')) {
+                                    const form = document.getElementById('formCancelarPaciente');
+                                    form.action = '/agendamento/cancelar/' + p.agendamentoId;
+                                    form.submit();
+                                }
+                            };
+                            acoesEl.appendChild(btnCanc);
+                        }
+
+                        modalDetalhes.show();
+                    }
+                });
+
+                calendar.render();
+            });
+        </script>
     </main>
 </html>

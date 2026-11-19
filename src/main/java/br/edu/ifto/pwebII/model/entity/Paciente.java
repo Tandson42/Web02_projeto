@@ -25,6 +25,9 @@ public class Paciente extends PessoaFisica implements Serializable {
     @OneToMany(mappedBy = "paciente", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Consulta> consultas = new ArrayList<>();
 
+    @OneToMany(mappedBy = "paciente", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    private List<Agendamento> agendamentos = new ArrayList<>();
+
     /**
      * Retorna uma String com a representação textual (dados básicos) do paciente.
      * Diferença de implementação: no material o método retornava apenas o nome;
@@ -60,5 +63,13 @@ public class Paciente extends PessoaFisica implements Serializable {
 
     public void setConsultas(List<Consulta> consultas) {
         this.consultas = consultas;
+    }
+
+    public List<Agendamento> getAgendamentos() {
+        return agendamentos;
+    }
+
+    public void setAgendamentos(List<Agendamento> agendamentos) {
+        this.agendamentos = agendamentos;
     }
 }

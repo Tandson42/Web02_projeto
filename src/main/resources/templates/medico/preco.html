@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::head}, ~{::main})}">
+
+    <head th:replace="~{fragments/head :: head(~{::title})}">
+        <title>Alterar Preço da Consulta</title>
+    </head>
+
+    <main th:fragment="main">
+        <div class="container mt-4">
+            <div class="row justify-content-center">
+                <div class="col-lg-5 col-md-7">
+                    <div class="alert alert-danger shadow-sm d-flex align-items-center gap-2 mb-3" th:if="${erro != null}">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <span th:text="${erro}"></span>
+                    </div>
+
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-white py-3 d-flex align-items-center justify-content-between">
+                            <h3 class="h5 mb-0 fw-bold">
+                                <i class="bi bi-cash-coin text-success me-2"></i>
+                                Preço da Consulta
+                            </h3>
+                            <a th:href="@{/}" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-arrow-left"></i> Voltar
+                            </a>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="p-3 rounded bg-light border mb-4">
+                                <div class="fw-semibold text-dark" th:text="${medico.nome}"></div>
+                                <div class="small text-muted">
+                                    CRM: <span th:text="${medico.crm}"></span> ·
+                                    Valor atual:
+                                    <strong class="text-success"
+                                            th:text="${'R$ ' + #numbers.formatDecimal(medico.valorConsulta, 1, 'POINT', 2, 'COMMA')}"></strong>
+                                </div>
+                            </div>
+
+                            <form th:action="@{/medico/preco/{id}(id=${medico.id})}" method="post">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold" for="valorConsulta">Novo Valor da Consulta (R$)</label>
+                                    <input type="number" class="form-control" id="valorConsulta" name="valorConsulta"
+                                           step="0.01" min="0" required
+                                           th:value="${medico.valorConsulta}"/>
+                                </div>
+
+                                <div class="alert alert-info border-0 small mb-4">
+                                    <i class="bi bi-info-circle-fill me-1"></i>
+                                    O novo preço valerá apenas para <strong>novos agendamentos</strong>.
+                                    Agendamentos já marcados e consultas já registradas mantêm o valor original.
+                                </div>
+
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="bi bi-check2-circle"></i> Salvar Preço
+                                    </button>
+                                    <a th:href="@{/}" class="btn btn-outline-secondary">Cancelar</a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</html>

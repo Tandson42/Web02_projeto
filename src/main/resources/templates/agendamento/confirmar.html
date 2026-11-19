@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      th:replace="~{fragments/layout :: layout(~{::head}, ~{::main})}">
+
+    <head th:replace="~{fragments/head :: head(~{::title})}">
+        <title>Confirmar Presença</title>
+    </head>
+
+    <main th:fragment="main">
+        <div class="container mt-4">
+            <div class="row justify-content-center">
+                <div class="col-lg-6 col-md-8">
+                    <div class="alert alert-danger shadow-sm d-flex align-items-center gap-2 mb-3" th:if="${erro != null}">
+                        <i class="bi bi-exclamation-triangle-fill"></i>
+                        <span th:text="${erro}"></span>
+                    </div>
+
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-white py-3 d-flex align-items-center justify-content-between">
+                            <h3 class="h5 mb-0 fw-bold">
+                                <i class="bi bi-person-check-fill text-success me-2"></i>
+                                Confirmar Presença e Registrar Consulta
+                            </h3>
+                            <a th:href="@{/agendamento/list}" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-arrow-left"></i> Voltar
+                            </a>
+                        </div>
+                        <div class="card-body p-4">
+                            <!-- Dados do agendamento -->
+                            <div class="p-3 rounded bg-light border mb-4">
+                                <div class="small text-uppercase text-muted fw-bold mb-2">
+                                    Dados do Agendamento #<span th:text="${agendamento.id}"></span>
+                                </div>
+                                <div class="d-flex flex-column gap-1">
+                                    <div>
+                                        <i class="bi bi-person-heart text-success me-2"></i>
+                                        <strong>Paciente:</strong>
+                                        <span th:text="${agendamento.paciente?.nome}"></span>
+                                    </div>
+                                    <div>
+                                        <i class="bi bi-person-badge text-info me-2"></i>
+                                        <strong>Médico:</strong>
+                                        <span th:text="${agendamento.agenda?.medico?.nome}"></span>
+                                        <span class="badge bg-white text-dark border ms-1" th:text="${agendamento.agenda?.medico?.crm}"></span>
+                                    </div>
+                                    <div>
+                                        <i class="bi bi-calendar-event text-info me-2"></i>
+                                        <strong>Data e Horário:</strong>
+                                        <span th:text="${#temporals.format(agendamento.agenda.data, 'dd/MM/yyyy')}"></span>
+                                        às
+                                        <span th:text="${#temporals.format(agendamento.agenda.horario, 'HH:mm')}"></span>
+                                    </div>
+                                    <div>
+                                        <i class="bi bi-cash-coin text-success me-2"></i>
+                                        <strong>Valor Garantido:</strong>
+                                        <span class="badge bg-success bg-opacity-10 text-success fw-bold px-2 py-1"
+                                              th:text="${'R$ ' + #numbers.formatDecimal(agendamento.valor, 1, 'POINT', 2, 'COMMA')}"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <form th:action="@{/agendamento/confirmar/{id}(id=${agendamento.id})}" method="post">
+                                <div class="mb-4">
+                                    <label class="form-label fw-semibold" for="observacao">Observação</label>
+                                    <textarea class="form-control" id="observacao" name="observacao" rows="3"
+                                              maxlength="500"
+                                              placeholder="Ex.: Comparecimento confirmado na recepção, consulta de rotina..."></textarea>
+                                </div>
+
+                                <div class="alert alert-success border-0 small mb-4">
+                                    <i class="bi bi-check-circle-fill me-1"></i>
+                                    Ao confirmar, o sistema criará automaticamente o registro na entidade
+                                    <strong>Consulta</strong> vinculado a este agendamento e atualizará a situação
+                                    para <strong>REALIZADO</strong>.
+                                </div>
+
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="bi bi-check2-circle"></i> Confirmar Presença
+                                    </button>
+                                    <a th:href="@{/agendamento/list}" class="btn btn-outline-secondary">
+                                        <i class="bi bi-x-circle"></i> Cancelar
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</html>

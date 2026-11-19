@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
       th:replace="~{fragments/layout :: layout(~{::head}, ~{::main})}">
 
     <head th:replace="~{fragments/head :: head(~{::title})}">
@@ -57,10 +58,17 @@
                                 </div>
 
                                 <div class="mb-3">
-                                    <label class="form-label" for="observacao">Observação / Motivo</label>
+                                    <label class="form-label" for="observacao">Observação do Médico</label>
                                     <input type="text" class="form-control" id="observacao"
                                            placeholder="Ex.: Consulta de rotina, retorno..."
-                                           th:field="*{observacao}" th:errorclass="is-invalid"/>
+                                           th:field="*{observacao}" th:errorclass="is-invalid"
+                                           sec:authorize="hasRole('ADMIN')"/>
+                                    <input type="text" class="form-control bg-light" id="observacaoReadonly"
+                                           th:field="*{observacao}" readonly
+                                           sec:authorize="hasRole('SECRETARIO') and !hasRole('ADMIN')"/>
+                                    <div class="form-text text-muted small" sec:authorize="hasRole('SECRETARIO') and !hasRole('ADMIN')">
+                                        Somente o médico responsável pode alterar as observações da consulta.
+                                    </div>
                                     <div class="invalid-feedback" th:if="${#fields.hasErrors('observacao')}"
                                          th:errors="*{observacao}"></div>
                                 </div>
