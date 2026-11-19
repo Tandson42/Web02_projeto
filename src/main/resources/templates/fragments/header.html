@@ -14,26 +14,29 @@
                     <li class="nav-item">
                         <a class="nav-link" th:href="@{/}"><i class="bi bi-house-door"></i> Home</a>
                     </li>
-                    <!-- Secretário e Admin -->
+                    <!-- Secretário e Admin (simplificado: Agenda unifica horários, agendamentos e histórico) -->
                     <li class="nav-item" sec:authorize="hasAnyRole('SECRETARIO', 'ADMIN')">
-                        <a class="nav-link" th:href="@{/medico/list}">Médicos</a>
+                        <a class="nav-link" th:href="@{/agenda/list}">Agenda</a>
                     </li>
                     <li class="nav-item" sec:authorize="hasAnyRole('SECRETARIO', 'ADMIN')">
                         <a class="nav-link" th:href="@{/paciente/list}">Pacientes</a>
                     </li>
                     <li class="nav-item" sec:authorize="hasAnyRole('SECRETARIO', 'ADMIN')">
-                        <a class="nav-link" th:href="@{/consulta/list}">Consultas</a>
+                        <a class="nav-link" th:href="@{/medico/list}">Médicos</a>
                     </li>
-                    <li class="nav-item" sec:authorize="hasAnyRole('SECRETARIO', 'ADMIN')">
+                    <li class="nav-item" sec:authorize="hasRole('ADMIN')">
                         <a class="nav-link" th:href="@{/usuario/list}">Usuários</a>
                     </li>
-                    <!-- Médico -->
-                    <li class="nav-item" sec:authorize="hasRole('MEDICO')">
-                        <a class="nav-link" th:href="@{/minhas-consultas-medico}">Minhas Consultas</a>
+                    <!-- Médico: apenas 2 visões (Agenda de Consultas e Meus Secretários) -->
+                    <li class="nav-item" sec:authorize="hasRole('MEDICO') and !hasAnyRole('SECRETARIO', 'ADMIN')">
+                        <a class="nav-link" th:href="@{/agenda/list}">Agenda de Consultas</a>
                     </li>
-                    <!-- Paciente -->
-                    <li class="nav-item" sec:authorize="hasRole('PACIENTE')">
-                        <a class="nav-link" th:href="@{/minhas-consultas}">Minhas Consultas</a>
+                    <li class="nav-item" sec:authorize="hasRole('MEDICO') and !hasAnyRole('SECRETARIO', 'ADMIN')">
+                        <a class="nav-link" th:href="@{/medico/secretarios}">Meus Secretários</a>
+                    </li>
+                    <!-- Paciente: apenas Minha Agenda (suas consultas agendadas + histórico realizadas) -->
+                    <li class="nav-item" sec:authorize="hasRole('PACIENTE') and !hasAnyRole('SECRETARIO', 'ADMIN')">
+                        <a class="nav-link" th:href="@{/minhas-consultas}">Minha Agenda</a>
                     </li>
                 </ul>
 

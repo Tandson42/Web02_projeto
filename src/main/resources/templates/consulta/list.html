@@ -36,12 +36,13 @@
                         <th>Observação</th>
                         <th>Paciente</th>
                         <th>Médico</th>
+                        <th>Agendamento</th>
                         <th class="text-end" style="min-width: 160px;">Ações</th>
                     </tr>
                     </thead>
                     <tbody>
                     <tr th:if="${#lists.isEmpty(consultas)}">
-                        <td colspan="7" class="text-center py-4 text-muted">Nenhuma consulta agendada até o momento.</td>
+                        <td colspan="8" class="text-center py-4 text-muted">Nenhuma consulta registrada até o momento.</td>
                     </tr>
                     <tr th:each="c : ${consultas}">
                         <td class="text-muted fw-bold" th:text="${c.id}"></td>
@@ -56,6 +57,11 @@
                         <td class="text-secondary small" th:text="${c.observacao}"></td>
                         <td class="fw-semibold" th:text="${c.paciente?.nome}"></td>
                         <td><span class="badge bg-light text-dark border" th:text="${c.medico?.nome}"></span></td>
+                        <td>
+                            <span th:if="${c.agendamento != null}" class="badge bg-info bg-opacity-10 text-info px-2 py-1"
+                                  th:text="${'#' + c.agendamento.id}"></span>
+                            <span th:if="${c.agendamento == null}" class="text-muted small">Avulsa</span>
+                        </td>
 
                         <td class="text-end">
                             <div class="btn-group btn-group-sm">

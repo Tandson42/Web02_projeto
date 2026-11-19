@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{fragments/layout :: layout(~{::head}, ~{::main})}">
+
+    <head th:replace="~{fragments/head :: head(~{::title})}">
+        <title>Cadastrar Horário na Agenda</title>
+    </head>
+
+    <main th:fragment="main">
+        <div class="container mt-4">
+            <div class="row justify-content-center">
+                <div class="col-lg-6 col-md-8">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-white py-3 d-flex align-items-center justify-content-between">
+                            <h3 class="h5 mb-0 fw-bold">
+                                <i class="bi bi-calendar-plus text-info me-2"></i>
+                                Cadastrar Disponibilidade
+                            </h3>
+                            <a th:href="@{/agenda/list}" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-arrow-left"></i> Voltar
+                            </a>
+                        </div>
+                        <div class="card-body p-4">
+                            <div class="alert alert-warning shadow-sm d-flex align-items-center gap-2 mb-3"
+                                 th:if="${secretarioSemPermissao == true}">
+                                <i class="bi bi-lock-fill"></i>
+                                <span>Nenhum médico autorizou você a alterar a agenda no momento. Peça ao médico para ativar a permissão de agenda.</span>
+                            </div>
+
+                            <form th:action="@{/agenda/save}" th:object="${agenda}" method="post">
+                                <div class="alert alert-danger shadow-sm d-flex align-items-center gap-2 mb-3"
+                                     th:if="${#fields.hasAnyErrors()}">
+                                    <i class="bi bi-exclamation-triangle-fill"></i>
+                                    <div>
+                                        <div th:each="erro : ${#fields.detailedErrors()}">
+                                            <span th:text="${erro.message}"></span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Seleção de médico (para ADMIN/SECRETARIO) -->
+                                <div class="mb-3" th:if="${medicos != null}">
+                                    <label class="form-label" for="medico">Médico</label>
+                                    <select class="form-select" id="medico" name="medico.id"
+                                            th:classappend="${#fields.hasErrors('medico')} ? 'is-invalid'">
+                                        <option value="">Selecione o médico...</option>
+                                        <option th:each="m : ${medicos}"
+                                                th:value="${m.id}"
+                                                th:text="${m.nome + ' (' + m.crm + ')'}"
+                                                th:selected="${m.id == agenda?.medico?.id}"></option>
+                                    </select>
+                                    <div class="invalid-feedback" th:if="${#fields.hasErrors('medico')}"
+                                         th:errors="*{medico}"></div>
+                                </div>
+
+                                <!-- Médico autenticado (para ROLE_MEDICO) -->
+                                <div class="mb-3" th:if="${medicoLogado != null}">
+                                    <label class="form-label">Médico</label>
+                                    <input type="text" class="form-control bg-light"
+                                           th:value="${medicoLogado.nome + ' (' + medicoLogado.crm + ')'}" readonly/>
+                                    <input type="hidden" name="medico.id" th:value="${medicoLogado.id}"/>
+                                </div>
+
+                                <div class="row g-3 mb-4">
+                                    <div class="col-md-6">
+                                        <label class="form-label" for="data">Data</label>
+                                        <input type="date" class="form-control" id="data" name="data"
+                                               th:value="${agenda?.data != null ? #temporals.format(agenda.data, 'yyyy-MM-dd') : ''}"
+                                               th:classappend="${#fields.hasErrors('data')} ? 'is-invalid'"/>
+                                        <div class="invalid-feedback" th:if="${#fields.hasErrors('data')}"
+                                             th:errors="*{data}"></div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label" for="horario">Horário</label>
+                                        <input type="time" class="form-control" id="horario" name="horario"
+                                               th:value="${agenda?.horario != null ? #temporals.format(agenda.horario, 'HH:mm') : ''}"
+                                               th:classappend="${#fields.hasErrors('horario')} ? 'is-invalid'"/>
+                                        <div class="invalid-feedback" th:if="${#fields.hasErrors('horario')}"
+                                             th:errors="*{horario}"></div>
+                                    </div>
+                                </div>
+
+                                <div class="alert alert-light border small text-muted mb-4">
+                                    <i class="bi bi-info-circle text-info me-1"></i>
+                                    O horário será cadastrado com a situação <strong>DISPONÍVEL</strong> e não permite
+                                    duplicidade para o mesmo médico na mesma data e hora.
+                                </div>
+
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-info text-white">
+                                        <i class="bi bi-check2-circle"></i> Salvar Horário
+                                    </button>
+                                    <a th:href="@{/agenda/list}" class="btn btn-outline-secondary">
+                                        <i class="bi bi-x-circle"></i> Cancelar
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</html>

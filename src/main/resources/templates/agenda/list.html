@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{fragments/layout :: layout(~{::head}, ~{::main})}">
+
+    <head th:replace="~{fragments/head :: head(~{::title})}">
+        <title>Agenda de Consultas</title>
+    </head>
+
+    <main th:fragment="main">
+        <!-- FullCalendar 6 (Google Calendar style) -->
+        <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+        <style>
+            .calendar-shell {
+                background: #ffffff;
+                border-radius: 16px;
+                border: 1px solid #e2e8f0;
+                box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
+                padding: 1.25rem;
+            }
+            .fc {
+                font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+                --fc-border-color: #edf2f7;
+                --fc-today-bg-color: rgba(14, 165, 233, 0.07);
+                --fc-button-bg-color: #ffffff;
+                --fc-button-border-color: #cbd5e1;
+                --fc-button-text-color: #334155;
+                --fc-button-hover-bg-color: #f1f5f9;
+                --fc-button-hover-border-color: #94a3b8;
+                --fc-button-active-bg-color: #0284c7;
+                --fc-button-active-border-color: #0284c7;
+                --fc-button-active-text-color: #ffffff;
+            }
+            .fc .fc-toolbar-title {
+                font-size: 1.25rem;
+                font-weight: 700;
+                color: #0f172a;
+                text-transform: capitalize;
+            }
+            .fc .fc-button {
+                border-radius: 8px !important;
+                font-weight: 600;
+                font-size: 0.85rem;
+                padding: 0.4rem 0.8rem;
+                box-shadow: none !important;
+                text-transform: capitalize;
+            }
+            .fc .fc-button-group > .fc-button {
+                border-radius: 0 !important;
+            }
+            .fc .fc-button-group > .fc-button:first-child {
+                border-top-left-radius: 8px !important;
+                border-bottom-left-radius: 8px !important;
+            }
+            .fc .fc-button-group > .fc-button:last-child {
+                border-top-right-radius: 8px !important;
+                border-bottom-right-radius: 8px !important;
+            }
+            .fc .fc-col-header-cell-cushion {
+                color: #64748b;
+                font-weight: 600;
+                font-size: 0.8rem;
+                text-transform: uppercase;
+                letter-spacing: 0.04em;
+                text-decoration: none;
+                padding: 8px 4px;
+            }
+            .fc .fc-daygrid-day-number {
+                color: #334155;
+                font-weight: 600;
+                font-size: 0.85rem;
+                text-decoration: none;
+                padding: 6px 8px;
+            }
+            .fc .fc-day-today .fc-daygrid-day-number {
+                background: #0284c7;
+                color: #ffffff;
+                border-radius: 999px;
+                width: 28px;
+                height: 28px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                margin: 4px;
+            }
+            .fc-event {
+                border-radius: 6px !important;
+                padding: 2px 6px !important;
+                font-size: 0.78rem !important;
+                font-weight: 600 !important;
+                cursor: pointer;
+                transition: filter 0.12s ease;
+            }
+            .fc-event:hover {
+                filter: brightness(0.92);
+            }
+            .legend-dot {
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                display: inline-block;
+            }
+            .fc-daygrid-day:hover {
+                background-color: #f8fafc;
+                cursor: pointer;
+            }
+        </style>
+
+        <div class="container mt-4 mb-5">
+            <div class="alert alert-success shadow-sm d-flex align-items-center gap-2 mb-3" th:if="${mensagem != null}">
+                <i class="bi bi-check-circle-fill"></i>
+                <span th:text="${mensagem}"></span>
+            </div>
+            <div class="alert alert-danger shadow-sm d-flex align-items-center gap-2 mb-3" th:if="${erro != null}">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <span th:text="${erro}"></span>
+            </div>
+
+            <!-- Cabeçalho -->
+            <div class="page-header mb-3">
+                <div>
+                    <h2 class="page-title mb-1">
+                        <i class="bi bi-calendar3 text-info me-2"></i>Agenda de Consultas
+                    </h2>
+                    <p class="text-secondary mb-0" th:if="${medicoLogado != null}">
+                        <strong th:text="${medicoLogado.nome}"></strong>
+                        <span class="text-muted">·</span>
+                        Valor da consulta:
+                        <span class="badge bg-success bg-opacity-10 text-success fw-bold"
+                              th:text="${'R$ ' + #numbers.formatDecimal(medicoLogado.valorConsulta, 1, 'POINT', 2, 'COMMA')}"></span>
+                    </p>
+                    <p class="text-secondary mb-0" th:if="${medicoLogado == null}">
+                        Visualize horários disponíveis, agendamentos e consultas registradas da clínica.
+                    </p>
+                </div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <a th:if="${medicoLogado != null}"
+                       th:href="@{/medico/preco/{id}(id=${medicoLogado.id})}"
+                       class="btn btn-outline-success">
+                        <i class="bi bi-cash-coin"></i> Alterar Preço
+                    </a>
+                    <button type="button" class="btn btn-info text-white"
+                            data-bs-toggle="modal" data-bs-target="#modalNovoHorario">
+                        <i class="bi bi-plus-circle-fill"></i> Novo Horário
+                    </button>
+                </div>
+            </div>
+
+            <!-- Legenda + Alternador de Visualização -->
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                <div class="d-flex align-items-center gap-3 flex-wrap small text-secondary">
+                    <span class="d-inline-flex align-items-center gap-1">
+                        <span class="legend-dot" style="background: #10b981;"></span> Disponível
+                    </span>
+                    <span class="d-inline-flex align-items-center gap-1">
+                        <span class="legend-dot" style="background: #f59e0b;"></span> Agendado
+                    </span>
+                    <span class="d-inline-flex align-items-center gap-1">
+                        <span class="legend-dot" style="background: #0284c7;"></span> Consulta Realizada
+                    </span>
+                    <span class="text-muted d-none d-md-inline">
+                        · Clique em qualquer dia/horário para cadastrar disponibilidade
+                    </span>
+                </div>
+
+                <ul class="nav nav-pills nav-sm gap-1" id="agendaViewTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active py-1 px-3 small fw-semibold" id="tab-calendario"
+                                data-bs-toggle="pill" data-bs-target="#pane-calendario" type="button" role="tab">
+                            <i class="bi bi-calendar3 me-1"></i> Calendário
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link py-1 px-3 small fw-semibold" id="tab-tabela"
+                                data-bs-toggle="pill" data-bs-target="#pane-tabela" type="button" role="tab">
+                            <i class="bi bi-list-ul me-1"></i> Horários
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation" th:if="${ehClinica}">
+                        <button class="nav-link py-1 px-3 small fw-semibold" id="tab-agendamentos"
+                                data-bs-toggle="pill" data-bs-target="#pane-agendamentos" type="button" role="tab">
+                            <i class="bi bi-bookmark-check me-1"></i> Agendamentos
+                            <span class="badge bg-warning bg-opacity-25 text-dark ms-1"
+                                  th:text="${#lists.size(agendamentosClinica)}">0</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link py-1 px-3 small fw-semibold" id="tab-historico"
+                                data-bs-toggle="pill" data-bs-target="#pane-historico" type="button" role="tab">
+                            <i class="bi bi-clock-history me-1"></i> Histórico de Consultas
+                            <span class="badge bg-info bg-opacity-25 text-dark ms-1"
+                                  th:text="${#lists.size(historicoConsultas)}">0</span>
+                        </button>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="tab-content">
+                <!-- Aba 1: Calendário Estilo Google Agenda -->
+                <div class="tab-pane fade show active" id="pane-calendario" role="tabpanel">
+                    <div class="calendar-shell">
+                        <div id="calendar"></div>
+                    </div>
+                </div>
+
+                <!-- Aba 2: Lista de Horários da Agenda -->
+                <div class="tab-pane fade" id="pane-tabela" role="tabpanel">
+                    <div class="table-responsive">
+                        <table class="table align-middle">
+                            <thead>
+                            <tr>
+                                <th style="width: 70px;">Id</th>
+                                <th th:if="${medicoLogado == null}">Médico</th>
+                                <th>Data</th>
+                                <th>Horário</th>
+                                <th>Situação</th>
+                                <th class="text-end" style="min-width: 190px;">Ações</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:if="${#lists.isEmpty(agendas)}">
+                                <td th:colspan="${medicoLogado == null ? 6 : 5}" class="text-center py-4 text-muted">
+                                    Nenhum horário cadastrado na agenda até o momento.
+                                </td>
+                            </tr>
+                            <tr th:each="a : ${agendas}">
+                                <td class="text-muted fw-bold" th:text="${a.id}"></td>
+                                <td th:if="${medicoLogado == null}" class="fw-semibold text-dark" th:text="${a.medico?.nome}"></td>
+                                <td>
+                                    <i class="bi bi-calendar-event me-1 text-info"></i>
+                                    <span th:text="${#temporals.format(a.data, 'dd/MM/yyyy')}"></span>
+                                </td>
+                                <td class="fw-semibold">
+                                    <i class="bi bi-clock me-1 text-info"></i>
+                                    <span th:text="${#temporals.format(a.horario, 'HH:mm')}"></span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-success bg-opacity-10 text-success px-2 py-1"
+                                          th:if="${a.status.name() == 'DISPONIVEL'}">
+                                        <i class="bi bi-check-circle me-1"></i> Disponível
+                                    </span>
+                                    <span class="badge bg-warning bg-opacity-25 text-dark px-2 py-1"
+                                          th:if="${a.status.name() == 'AGENDADO'}">
+                                        <i class="bi bi-bookmark-check me-1"></i> Agendado
+                                    </span>
+                                </td>
+                                <td class="text-end">
+                                    <div class="d-inline-flex gap-1 align-items-center">
+                                        <a th:if="${a.status.name() == 'DISPONIVEL'}"
+                                           sec:authorize="hasAnyRole('SECRETARIO', 'ADMIN')"
+                                           th:href="@{/agendamento/novo/{id}(id=${a.id})}"
+                                           class="btn btn-outline-info btn-sm">
+                                            <i class="bi bi-calendar-plus"></i> Agendar
+                                        </a>
+                                        <form th:if="${a.status.name() == 'DISPONIVEL' and (idsMedicosComPermissaoAgenda == null or #sets.contains(idsMedicosComPermissaoAgenda, a.medico.id))}"
+                                              th:action="@{/agenda/remove/{id}(id=${a.id})}"
+                                              method="post"
+                                              onsubmit="return window.confirm('Deseja remover este horário da agenda?')">
+                                            <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                <i class="bi bi-trash"></i> Remover
+                                            </button>
+                                        </form>
+                                        <span th:if="${a.status.name() == 'DISPONIVEL' and idsMedicosComPermissaoAgenda != null and !#sets.contains(idsMedicosComPermissaoAgenda, a.medico.id)}"
+                                              class="badge bg-light text-muted border">
+                                            <i class="bi bi-lock"></i> Sem permissão
+                                        </span>
+                                        <span th:if="${a.status.name() == 'AGENDADO'}" class="text-muted small">
+                                            Reservado
+                                        </span>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Aba: Agendamentos (para Secretário e Admin: confirmar presença e cancelar) -->
+                <div class="tab-pane fade" id="pane-agendamentos" role="tabpanel" th:if="${ehClinica}">
+                    <div class="table-responsive">
+                        <table class="table align-middle">
+                            <thead>
+                            <tr>
+                                <th style="width: 65px;">Id</th>
+                                <th>Data / Horário</th>
+                                <th>Médico</th>
+                                <th>Paciente</th>
+                                <th>Valor</th>
+                                <th>Situação</th>
+                                <th class="text-end" style="min-width: 240px;">Ações</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:if="${#lists.isEmpty(agendamentosClinica)}">
+                                <td colspan="7" class="text-center py-4 text-muted">
+                                    Nenhum agendamento registrado até o momento.
+                                </td>
+                            </tr>
+                            <tr th:each="ag : ${agendamentosClinica}">
+                                <td class="text-muted fw-bold" th:text="${ag.id}"></td>
+                                <td class="fw-semibold text-dark">
+                                    <i class="bi bi-calendar-event me-1 text-info"></i>
+                                    <span th:text="${#temporals.format(ag.agenda.data, 'dd/MM/yyyy')}"></span>
+                                    <span class="text-muted mx-1">às</span>
+                                    <span th:text="${#temporals.format(ag.agenda.horario, 'HH:mm')}"></span>
+                                </td>
+                                <td><span class="badge bg-light text-dark border" th:text="${ag.agenda?.medico?.nome}"></span></td>
+                                <td class="fw-semibold" th:text="${ag.paciente?.nome}"></td>
+                                <td>
+                                    <span class="badge bg-success bg-opacity-10 text-success fw-bold px-2 py-1"
+                                          th:text="${'R$ ' + #numbers.formatDecimal(ag.valor, 1, 'POINT', 2, 'COMMA')}"></span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-warning bg-opacity-25 text-dark px-2 py-1"
+                                          th:if="${ag.status.name() == 'AGENDADO'}">Agendado</span>
+                                    <span class="badge bg-success bg-opacity-10 text-success px-2 py-1"
+                                          th:if="${ag.status.name() == 'REALIZADO'}">Realizado</span>
+                                    <span class="badge bg-danger bg-opacity-10 text-danger px-2 py-1"
+                                          th:if="${ag.status.name() == 'CANCELADO'}">Cancelado</span>
+                                </td>
+                                <td class="text-end">
+                                    <div class="d-inline-flex gap-1 flex-wrap justify-content-end">
+                                        <a th:if="${ag.status.name() == 'AGENDADO'}"
+                                           th:href="@{/agendamento/confirmar/{id}(id=${ag.id})}"
+                                           class="btn btn-success btn-sm">
+                                            <i class="bi bi-person-check-fill"></i> Confirmar Presença
+                                        </a>
+                                        <form th:if="${ag.status.name() == 'AGENDADO'}"
+                                              th:action="@{/agendamento/cancelar/{id}(id=${ag.id})}"
+                                              method="post"
+                                              onsubmit="return window.confirm('Deseja cancelar este agendamento? O horário voltará a ficar disponível.')">
+                                            <button type="submit" class="btn btn-outline-danger btn-sm">
+                                                <i class="bi bi-x-circle"></i> Cancelar
+                                            </button>
+                                        </form>
+                                        <span th:if="${ag.status.name() != 'AGENDADO'}" class="text-muted small">Encerrado</span>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Aba 3: Histórico de Consultas (do médico logado ou de toda a clínica) -->
+                <div class="tab-pane fade" id="pane-historico" role="tabpanel">
+                    <div class="table-responsive">
+                        <table class="table align-middle">
+                            <thead>
+                            <tr>
+                                <th style="width: 70px;">Id</th>
+                                <th>Data e Horário</th>
+                                <th>Paciente</th>
+                                <th th:if="${medicoLogado == null}">Médico</th>
+                                <th>Valor</th>
+                                <th>Observação</th>
+                                <th>Origem</th>
+                                <th class="text-end" style="min-width: 170px;">Ação</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:if="${#lists.isEmpty(historicoConsultas)}">
+                                <td th:colspan="${medicoLogado == null ? 8 : 7}" class="text-center py-4 text-muted">
+                                    Nenhuma consulta realizada registrada até o momento.
+                                </td>
+                            </tr>
+                            <tr th:each="c : ${historicoConsultas}">
+                                <td class="text-muted fw-bold" th:text="${c.id}"></td>
+                                <td class="fw-semibold text-dark">
+                                    <i class="bi bi-calendar-check me-1 text-info"></i>
+                                    <span th:text="${#temporals.format(c.data, 'dd/MM/yyyy HH:mm')}"></span>
+                                </td>
+                                <td class="fw-semibold" th:text="${c.paciente?.nome}"></td>
+                                <td th:if="${medicoLogado == null}">
+                                    <span class="badge bg-light text-dark border" th:text="${c.medico?.nome}"></span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-success bg-opacity-10 text-success fw-bold px-2 py-1"
+                                          th:text="${'R$ ' + #numbers.formatDecimal(c.valor, 1, 'POINT', 2, 'COMMA')}"></span>
+                                </td>
+                                <td class="text-secondary small">
+                                    <span th:if="${medicoLogado != null or idsMedicosAssociados == null or (c.medico != null and #sets.contains(idsMedicosAssociados, c.medico.id))}"
+                                          th:text="${c.observacao != null and !#strings.isEmpty(c.observacao) ? c.observacao : '—'}"></span>
+                                    <span th:if="${medicoLogado == null and idsMedicosAssociados != null and (c.medico == null or !#sets.contains(idsMedicosAssociados, c.medico.id))}"
+                                          class="text-muted fst-italic">Restrito</span>
+                                </td>
+                                <td>
+                                    <span th:if="${c.agendamento != null}" class="badge bg-info bg-opacity-10 text-info px-2 py-1"
+                                          th:text="${'Agendamento #' + c.agendamento.id}"></span>
+                                    <span th:if="${c.agendamento == null}" class="text-muted small">Avulsa</span>
+                                </td>
+                                <td class="text-end">
+                                    <!-- Médico: pode editar suas observações -->
+                                    <a th:if="${medicoLogado != null}"
+                                       th:href="@{/consulta/observacao/{id}(id=${c.id})}"
+                                       class="btn btn-outline-info btn-sm">
+                                        <i class="bi bi-pencil-square"></i> Observações
+                                    </a>
+                                    <!-- Secretário associado ou Admin: pode visualizar (somente leitura) -->
+                                    <a th:if="${medicoLogado == null and (idsMedicosAssociados == null or (c.medico != null and #sets.contains(idsMedicosAssociados, c.medico.id)))}"
+                                       th:href="@{/consulta/observacao/{id}(id=${c.id})}"
+                                       class="btn btn-outline-secondary btn-sm">
+                                        <i class="bi bi-eye"></i> Ver Obs.
+                                    </a>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal: Cadastro Rápido de Horário (abre ao clicar em "Novo Horário" ou em qualquer dia do calendário) -->
+        <div class="modal fade" id="modalNovoHorario" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow">
+                    <div class="modal-header border-bottom">
+                        <h5 class="modal-title fw-bold">
+                            <i class="bi bi-calendar-plus text-info me-2"></i>Cadastrar Horário Disponível
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                    </div>
+                    <form th:action="@{/agenda/save}" method="post">
+                        <div class="modal-body">
+                            <!-- Médico autenticado -->
+                            <div class="mb-3" th:if="${medicoLogado != null}">
+                                <label class="form-label fw-semibold">Médico</label>
+                                <input type="text" class="form-control bg-light"
+                                       th:value="${medicoLogado.nome + ' (' + medicoLogado.crm + ')'}" readonly/>
+                                <input type="hidden" name="medico.id" th:value="${medicoLogado.id}"/>
+                            </div>
+
+                            <!-- Seleção de médico para ADMIN / SECRETARIO autorizado -->
+                            <div class="mb-3" th:if="${medicoLogado == null}">
+                                <label class="form-label fw-semibold" for="modalMedico">Médico</label>
+                                <select class="form-select" id="modalMedico" name="medico.id" required>
+                                    <option value="">Selecione o médico...</option>
+                                    <option th:each="m : ${medicosModal}"
+                                            th:value="${m.id}"
+                                            th:text="${m.nome + ' (' + m.crm + ')'}"></option>
+                                </select>
+                                <div class="form-text text-warning" th:if="${#lists.isEmpty(medicosModal)}">
+                                    Nenhum médico autorizou você a alterar a agenda no momento.
+                                </div>
+                            </div>
+
+                            <div class="row g-3">
+                                <div class="col-6">
+                                    <label class="form-label fw-semibold" for="modalData">Data</label>
+                                    <input type="date" class="form-control" id="modalData" name="data" required/>
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label fw-semibold" for="modalHorario">Horário</label>
+                                    <input type="time" class="form-control" id="modalHorario" name="horario" value="09:00" required/>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer border-top">
+                            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn btn-info text-white"
+                                    th:disabled="${medicoLogado == null and #lists.isEmpty(medicosModal)}">
+                                <i class="bi bi-check2-circle"></i> Salvar Horário
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal: Detalhes do Evento clicado no Calendário -->
+        <div class="modal fade" id="modalDetalhesEvento" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow">
+                    <div class="modal-header border-bottom">
+                        <h5 class="modal-title fw-bold" id="detalheTitulo">Detalhes</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <span id="detalheBadge" class="badge px-3 py-2 fs-6"></span>
+                        </div>
+                        <div class="d-flex flex-column gap-2 small">
+                            <div><i class="bi bi-calendar-event text-info me-2"></i><strong>Data e Horário:</strong> <span id="detalheDataHora"></span></div>
+                            <div><i class="bi bi-person-badge text-info me-2"></i><strong>Médico:</strong> <span id="detalheMedico"></span></div>
+                            <div id="linhaPaciente" class="d-none"><i class="bi bi-person-heart text-success me-2"></i><strong>Paciente:</strong> <span id="detalhePaciente"></span></div>
+                            <div><i class="bi bi-cash-coin text-success me-2"></i><strong>Valor:</strong> <span id="detalheValor"></span></div>
+                            <div id="linhaObservacao" class="d-none"><i class="bi bi-card-text text-secondary me-2"></i><strong>Observação:</strong> <span id="detalheObservacao"></span></div>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-top d-flex justify-content-between">
+                        <div id="detalheAcoes" class="d-flex gap-2"></div>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Fechar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form oculto com CSRF para remover horário ou cancelar agendamento direto do modal -->
+        <form id="formRemoverAgenda" method="post" th:action="@{/agenda/remove/0}" class="d-none"></form>
+        <form id="formCancelarAgendamento" method="post" th:action="@{/agendamento/cancelar/0}" class="d-none"></form>
+
+        <script th:inline="javascript">
+            document.addEventListener('DOMContentLoaded', function () {
+                const calendarEl = document.getElementById('calendar');
+                const modalNovo = new bootstrap.Modal(document.getElementById('modalNovoHorario'));
+                const modalDetalhes = new bootstrap.Modal(document.getElementById('modalDetalhesEvento'));
+
+                const fmtMoeda = (v) => {
+                    if (v === null || v === undefined) return 'R$ 0,00';
+                    return Number(v).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                };
+
+                const fmtDataHora = (date) => {
+                    if (!date) return '';
+                    return date.toLocaleDateString('pt-BR') + ' às ' +
+                        date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                };
+
+                const calendar = new FullCalendar.Calendar(calendarEl, {
+                    locale: 'pt-br',
+                    initialView: 'dayGridMonth',
+                    height: 'auto',
+                    nowIndicator: true,
+                    dayMaxEvents: 4,
+                    slotMinTime: '07:00:00',
+                    slotMaxTime: '20:00:00',
+                    allDaySlot: false,
+                    buttonText: {
+                        today: 'Hoje',
+                        month: 'Mês',
+                        week: 'Semana',
+                        day: 'Dia',
+                        list: 'Lista'
+                    },
+                    headerToolbar: {
+                        left: 'prev,next today',
+                        center: 'title',
+                        right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+                    },
+                    events: /*[[@{/agenda/eventos}]]*/ '/agenda/eventos',
+                    dateClick: function (info) {
+                        const dateStr = info.dateStr.substring(0, 10);
+                        document.getElementById('modalData').value = dateStr;
+                        if (info.dateStr.length > 10) {
+                            document.getElementById('modalHorario').value = info.dateStr.substring(11, 16);
+                        }
+                        modalNovo.show();
+                    },
+                    eventClick: function (info) {
+                        const p = info.event.extendedProps;
+                        document.getElementById('detalheTitulo').textContent = info.event.title;
+                        document.getElementById('detalheDataHora').textContent = fmtDataHora(info.event.start);
+                        document.getElementById('detalheMedico').textContent = p.medico + (p.crm ? ' (' + p.crm + ')' : '');
+                        document.getElementById('detalheValor').textContent = fmtMoeda(p.valor);
+
+                        const badge = document.getElementById('detalheBadge');
+                        badge.textContent = p.statusLabel;
+                        if (p.tipo === 'DISPONIVEL') {
+                            badge.className = 'badge bg-success bg-opacity-10 text-success px-3 py-2';
+                        } else if (p.tipo === 'AGENDADO') {
+                            badge.className = 'badge bg-warning bg-opacity-25 text-dark px-3 py-2';
+                        } else {
+                            badge.className = 'badge bg-info bg-opacity-10 text-info px-3 py-2';
+                        }
+
+                        const linhaPac = document.getElementById('linhaPaciente');
+                        if (p.paciente) {
+                            document.getElementById('detalhePaciente').textContent = p.paciente;
+                            linhaPac.classList.remove('d-none');
+                        } else {
+                            linhaPac.classList.add('d-none');
+                        }
+
+                        const linhaObs = document.getElementById('linhaObservacao');
+                        if (p.observacao) {
+                            document.getElementById('detalheObservacao').textContent = p.observacao;
+                            linhaObs.classList.remove('d-none');
+                        } else {
+                            linhaObs.classList.add('d-none');
+                        }
+
+                        const acoesEl = document.getElementById('detalheAcoes');
+                        acoesEl.innerHTML = '';
+
+                        if (p.tipo === 'DISPONIVEL' && p.podeAgendar) {
+                            const btnAg = document.createElement('a');
+                            btnAg.href = '/agendamento/novo/' + p.agendaId;
+                            btnAg.className = 'btn btn-info text-white btn-sm';
+                            btnAg.innerHTML = '<i class="bi bi-calendar-plus me-1"></i>Agendar';
+                            acoesEl.appendChild(btnAg);
+                        }
+
+                        if (p.tipo === 'DISPONIVEL' && p.podeRemover) {
+                            const btnRem = document.createElement('button');
+                            btnRem.type = 'button';
+                            btnRem.className = 'btn btn-outline-danger btn-sm';
+                            btnRem.innerHTML = '<i class="bi bi-trash me-1"></i>Remover Horário';
+                            btnRem.onclick = function () {
+                                if (window.confirm('Deseja remover este horário da agenda?')) {
+                                    const form = document.getElementById('formRemoverAgenda');
+                                    form.action = '/agenda/remove/' + p.agendaId;
+                                    form.submit();
+                                }
+                            };
+                            acoesEl.appendChild(btnRem);
+                        }
+
+                        if (p.tipo === 'AGENDADO' && p.podeConfirmar) {
+                            const btnConf = document.createElement('a');
+                            btnConf.href = '/agendamento/confirmar/' + p.agendamentoId;
+                            btnConf.className = 'btn btn-success btn-sm';
+                            btnConf.innerHTML = '<i class="bi bi-person-check-fill me-1"></i>Confirmar Presença';
+                            acoesEl.appendChild(btnConf);
+                        }
+
+                        if (p.tipo === 'AGENDADO' && p.podeCancelar) {
+                            const btnCanc = document.createElement('button');
+                            btnCanc.type = 'button';
+                            btnCanc.className = 'btn btn-outline-danger btn-sm';
+                            btnCanc.innerHTML = '<i class="bi bi-x-circle me-1"></i>Cancelar';
+                            btnCanc.onclick = function () {
+                                if (window.confirm('Deseja cancelar este agendamento? O horário voltará a ficar disponível.')) {
+                                    const form = document.getElementById('formCancelarAgendamento');
+                                    form.action = '/agendamento/cancelar/' + p.agendamentoId;
+                                    form.submit();
+                                }
+                            };
+                            acoesEl.appendChild(btnCanc);
+                        }
+
+                        if (p.tipo === 'CONSULTA' && p.podeEditarObs) {
+                            const btnObs = document.createElement('a');
+                            btnObs.href = '/consulta/observacao/' + p.consultaId;
+                            btnObs.className = 'btn btn-info text-white btn-sm';
+                            btnObs.innerHTML = '<i class="bi bi-pencil-square me-1"></i>Editar Observações';
+                            acoesEl.appendChild(btnObs);
+                        } else if (p.tipo === 'CONSULTA' && p.podeVerObs) {
+                            const btnVerObs = document.createElement('a');
+                            btnVerObs.href = '/consulta/observacao/' + p.consultaId;
+                            btnVerObs.className = 'btn btn-outline-secondary btn-sm';
+                            btnVerObs.innerHTML = '<i class="bi bi-eye me-1"></i>Ver Observações';
+                            acoesEl.appendChild(btnVerObs);
+                        }
+
+                        modalDetalhes.show();
+                    }
+                });
+
+                calendar.render();
+            });
+        </script>
+    </main>
+</html>

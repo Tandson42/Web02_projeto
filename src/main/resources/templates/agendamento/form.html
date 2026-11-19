@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="pt-BR" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      th:replace="~{fragments/layout :: layout(~{::head}, ~{::main})}">
+
+    <head th:replace="~{fragments/head :: head(~{::title})}">
+        <title>Solicitar Consulta</title>
+    </head>
+
+    <main th:fragment="main">
+        <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+        <style>
+            .calendar-preview-shell {
+                background: #ffffff;
+                border-radius: 16px;
+                border: 1px solid #e2e8f0;
+                box-shadow: 0 4px 20px rgba(15, 23, 42, 0.05);
+                padding: 1rem;
+            }
+            .fc {
+                font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+                --fc-border-color: #edf2f7;
+                --fc-today-bg-color: rgba(14, 165, 233, 0.06);
+                --fc-button-bg-color: #ffffff;
+                --fc-button-border-color: #cbd5e1;
+                --fc-button-text-color: #334155;
+                --fc-button-hover-bg-color: #f1f5f9;
+                --fc-button-active-bg-color: #0284c7;
+                --fc-button-active-border-color: #0284c7;
+                --fc-button-active-text-color: #ffffff;
+            }
+            .fc .fc-toolbar-title {
+                font-size: 1.05rem;
+                font-weight: 700;
+                color: #0f172a;
+                text-transform: capitalize;
+            }
+            .fc .fc-button {
+                border-radius: 8px !important;
+                font-weight: 600;
+                font-size: 0.78rem;
+                padding: 0.3rem 0.65rem;
+                box-shadow: none !important;
+                text-transform: capitalize;
+            }
+            .fc .fc-button-group > .fc-button {
+                border-radius: 0 !important;
+            }
+            .fc .fc-button-group > .fc-button:first-child {
+                border-top-left-radius: 8px !important;
+                border-bottom-left-radius: 8px !important;
+            }
+            .fc .fc-button-group > .fc-button:last-child {
+                border-top-right-radius: 8px !important;
+                border-bottom-right-radius: 8px !important;
+            }
+            .fc-event {
+                border-radius: 6px !important;
+                padding: 2px 6px !important;
+                font-size: 0.76rem !important;
+                font-weight: 600 !important;
+            }
+            .fc-event-preview {
+                border: 2px dashed #0284c7 !important;
+                background-color: #e0f2fe !important;
+                color: #0369a1 !important;
+                box-shadow: 0 0 0 3px rgba(2, 132, 199, 0.15);
+            }
+            .fc-event-preview .fc-event-main {
+                color: #0369a1 !important;
+            }
+            .legend-dot {
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                display: inline-block;
+            }
+        </style>
+
+        <div class="container mt-4 mb-5">
+            <div class="alert alert-danger shadow-sm d-flex align-items-center gap-2 mb-3" th:if="${erro != null}">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <span th:text="${erro}"></span>
+            </div>
+
+            <div class="row g-4 align-items-start">
+                <!-- Coluna Esquerda: Confirmação do Agendamento -->
+                <div class="col-lg-5">
+                    <div class="card shadow-sm border-0">
+                        <div class="card-header bg-white py-3 d-flex align-items-center justify-content-between">
+                            <h3 class="h5 mb-0 fw-bold">
+                                <i class="bi bi-calendar2-plus text-info me-2"></i>
+                                Confirmar Agendamento
+                            </h3>
+                            <a th:href="@{/agenda/disponiveis}" class="btn btn-outline-secondary btn-sm">
+                                <i class="bi bi-arrow-left"></i> Voltar
+                            </a>
+                        </div>
+                        <div class="card-body p-4">
+                            <!-- Resumo do horário selecionado -->
+                            <div class="p-3 rounded bg-light border mb-4">
+                                <div class="small text-uppercase text-muted fw-bold mb-2">Horário Selecionado</div>
+                                <div class="d-flex flex-column gap-1 small">
+                                    <div>
+                                        <i class="bi bi-person-badge text-info me-2"></i>
+                                        <strong>Médico:</strong>
+                                        <span th:text="${agenda.medico?.nome}"></span>
+                                        <span class="badge bg-white text-dark border ms-1" th:text="${agenda.medico?.crm}"></span>
+                                    </div>
+                                    <div>
+                                        <i class="bi bi-calendar-event text-info me-2"></i>
+                                        <strong>Data:</strong>
+                                        <span th:text="${#temporals.format(agenda.data, 'dd/MM/yyyy')}"></span>
+                                    </div>
+                                    <div>
+                                        <i class="bi bi-clock text-info me-2"></i>
+                                        <strong>Horário:</strong>
+                                        <span th:text="${#temporals.format(agenda.horario, 'HH:mm')}"></span>
+                                    </div>
+                                    <div>
+                                        <i class="bi bi-cash-coin text-success me-2"></i>
+                                        <strong>Valor da Consulta:</strong>
+                                        <span class="badge bg-success bg-opacity-10 text-success fw-bold px-2 py-1"
+                                              th:text="${'R$ ' + #numbers.formatDecimal(agenda.medico.valorConsulta, 1, 'POINT', 2, 'COMMA')}"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <form th:action="@{/agendamento/save}" method="post">
+                                <input type="hidden" name="agendaId" th:value="${agenda.id}"/>
+
+                                <!-- Seleção de paciente pela clínica (ADMIN / SECRETARIO) -->
+                                <div class="mb-4" th:if="${pacientes != null}">
+                                    <label class="form-label fw-semibold" for="pacienteId">Paciente</label>
+                                    <select class="form-select" id="pacienteId" name="pacienteId" required>
+                                        <option value="">Selecione o paciente...</option>
+                                        <option th:each="p : ${pacientes}"
+                                                th:value="${p.id}"
+                                                th:text="${p.nome + ' - CPF: ' + p.cpf}"></option>
+                                    </select>
+                                </div>
+
+                                <!-- Paciente autenticado -->
+                                <div class="mb-4" th:if="${pacienteLogado != null}">
+                                    <label class="form-label fw-semibold">Paciente</label>
+                                    <input type="text" class="form-control bg-light"
+                                           th:value="${pacienteLogado.nome + ' (' + pacienteLogado.cpf + ')'}" readonly/>
+                                </div>
+
+                                <div class="alert alert-info border-0 small mb-4">
+                                    <i class="bi bi-info-circle-fill me-1"></i>
+                                    O agendamento reserva este horário com o valor garantido. A consulta será registrada
+                                    após a confirmação do comparecimento na clínica.
+                                </div>
+
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-info text-white flex-grow-1">
+                                        <i class="bi bi-check2-circle"></i> Confirmar Agendamento
+                                    </button>
+                                    <a th:href="@{/agenda/disponiveis}" class="btn btn-outline-secondary">
+                                        Cancelar
+                                    </a>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Coluna Direita: Preview Visual na Agenda -->
+                <div class="col-lg-7">
+                    <div class="calendar-preview-shell">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                            <div>
+                                <h4 class="h6 fw-bold mb-0">
+                                    <i class="bi bi-eye text-info me-1"></i>
+                                    Preview na Agenda
+                                </h4>
+                                <small class="text-muted">Veja como o novo horário ficará encaixado na sua semana</small>
+                            </div>
+                            <div class="d-flex align-items-center gap-3 small text-secondary">
+                                <span class="d-inline-flex align-items-center gap-1">
+                                    <span class="legend-dot" style="background: #e0f2fe; border: 2px dashed #0284c7;"></span>
+                                    Nova solicitação
+                                </span>
+                                <span th:if="${pacienteLogado != null}" class="d-inline-flex align-items-center gap-1">
+                                    <span class="legend-dot" style="background: #f59e0b;"></span>
+                                    Já agendada
+                                </span>
+                                <span th:if="${pacienteLogado != null}" class="d-inline-flex align-items-center gap-1">
+                                    <span class="legend-dot" style="background: #0284c7;"></span>
+                                    Realizada
+                                </span>
+                            </div>
+                        </div>
+
+                        <div id="calendarPreview"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <script th:inline="javascript">
+            document.addEventListener('DOMContentLoaded', function () {
+                const calendarEl = document.getElementById('calendarPreview');
+                const ehPaciente = /*[[${pacienteLogado != null}]]*/ false;
+                const dataPreview = /*[[${#temporals.format(agenda.data, 'yyyy-MM-dd')}]]*/ '2026-11-20';
+                const inicioPreview = /*[[${#temporals.format(agenda.dataHora, 'yyyy-MM-dd''T''HH:mm:ss')}]]*/ '2026-11-20T08:00:00';
+                const fimPreview = /*[[${#temporals.format(agenda.dataHora.plusMinutes(30), 'yyyy-MM-dd''T''HH:mm:ss')}]]*/ '2026-11-20T08:30:00';
+                const medicoNome = /*[[${agenda.medico?.nome}]]*/ 'Médico';
+
+                const eventoPreview = {
+                    id: 'preview-nova-consulta',
+                    title: '★ Nova Consulta · ' + medicoNome,
+                    start: inicioPreview,
+                    end: fimPreview,
+                    classNames: ['fc-event-preview']
+                };
+
+                const eventSources = [
+                    { events: [eventoPreview] }
+                ];
+
+                // Para paciente, carrega também os agendamentos e consultas dele para visualizar encaixe/conflitos
+                if (ehPaciente) {
+                    eventSources.push({
+                        url: /*[[@{/minhas-consultas/eventos}]]*/ '/minhas-consultas/eventos'
+                    });
+                }
+
+                const calendar = new FullCalendar.Calendar(calendarEl, {
+                    locale: 'pt-br',
+                    initialDate: dataPreview,
+                    initialView: 'timeGridWeek',
+                    height: 520,
+                    nowIndicator: true,
+                    allDaySlot: false,
+                    slotMinTime: '07:00:00',
+                    slotMaxTime: '20:00:00',
+                    scrollTime: inicioPreview.substring(11, 19),
+                    buttonText: {
+                        today: 'Hoje',
+                        month: 'Mês',
+                        week: 'Semana',
+                        day: 'Dia'
+                    },
+                    headerToolbar: {
+                        left: 'prev,next',
+                        center: 'title',
+                        right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                    },
+                    eventSources: eventSources
+                });
+
+                calendar.render();
+            });
+        </script>
+    </main>
+</html>
